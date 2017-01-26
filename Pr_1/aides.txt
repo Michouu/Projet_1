@@ -1,0 +1,15 @@
+
+	 ***** HELP ***** 
+
+ For using this executable, we have to respect some instruction
+
+ Usage: ./Programm [options]
+
+           Options:[-i] < CAN interface >
+                   [-w] < way > path where the user want to create the file
+                   
+		   
+
+ Examples:
+ ./Lire -i can0 -w /home/documents/file.txt 
+  

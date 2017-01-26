@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+
+
+
+
+int
+utility ()
+{
+
+FILE *fichier;
+
+  
+    
+      fichier = fopen ("aides.txt", "r");
+    
+
+	while (!feof(fichier))
+	  putchar(fgetc(fichier));
+
+	fclose(fichier);
+
+return 0;
+}fb
+
+  /*printf ("\t \033[1m ***** HELP ***** \n");
+
+  printf (" Usage: ./Programm [options]\n\n");
+  printf (" Options:[-i] < CAN interface >\n");
+  printf ("         [-f] < file name >\n");
+  printf ("         [-t] < gap in microsecond >\n");;
+  printf ("         [-z] < portnbr > (default:CAN_RAW)\n\n");
+  printf (" Examples:\n");
+  printf (" ./Programm -i can0 -f file.txt -t 1000\n\n");*/
+
+
+

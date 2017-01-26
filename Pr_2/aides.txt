@@ -1,0 +1,16 @@
+
+	 ***** HELP ***** 
+
+ For using this executable, we have to respect some instruction
+
+ Usage: ./Programm [options]
+
+           Options:[-i] < CAN interface >
+                   [-f] < file name >
+                   [-t] < gap in microsecond >
+		   [-z] < ptronbr > (default:CAN_RAW)
+		   [-S] : with or without timestamp
+
+ Examples:
+ ./Programm -i can0 -f file.txt -t 1000
+ ./Programm -i can0 -f timestamps.txt -S -z 7 

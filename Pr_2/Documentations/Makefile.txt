@@ -1,0 +1,6 @@
+
+La structure de base du Makefile est : 
+	cible : dependances
+		commandes
+
+cible : 
