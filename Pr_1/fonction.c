@@ -11,7 +11,7 @@ int
 utility ()
 {
 
-  FILE *fichier
+  FILE *fichier;
 
 
 
