@@ -16,4 +16,4 @@ typedef struct
 void usage ();
 int check (char *file,Tst_trame trames);
 
-//int diff_t ( int trame_micro_sec, long trame_sec);
+

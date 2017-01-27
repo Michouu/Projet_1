@@ -9,7 +9,7 @@
 
 CC?=gcc
 EXEC=Generer
-SOURCE= $(wildcard *.c) 
+SOURCE= $(wildcard *.c) fonctions.h 
 CFLAGS = -W 
 
 

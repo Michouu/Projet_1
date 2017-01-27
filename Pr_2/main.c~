@@ -1,8 +1,24 @@
+/*
+simple command line tool to send CAN-frames via CAn_RAW sockets
+*
+All rights reserved.
+*
+Author: MICHEL Victor <victor.michel@actia.fr>
+*
+This programm reads frames from a file text and allocate
+the differents informations in the structure.
+*
+Then, these informations are stocked in a socket and send at
+the interface due to CAN_RAW.
+*
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -10,71 +26,74 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <sys/types.h>
+#include <linux/socket.h>
+#include <signal.h>
 
 #include "fonctions.h"
 
-#define CAN_RAW 1
-#define CAN_SRAW 7
- 
 
-struct
+int main (int argc, char *argv[])
 {
-  char Nom_interface[5];
-  int Id;
-  unsigned char taille;
-  unsigned char data[8];
-  long sec_tps;
-  int usec_tps;
-} Tst_trame;
+	Tst_trame var_trames;
 
-/*argv un tableau de pointeurs   argc indique le nbr de chaines de cara sur lequel pointe argv*/
-int
-main (int argc, char *argv[])
-{
+  /*Variable declaration*/
   int i, j, l;
   int sock;
   int nbytes, opt;
-  char *N_interf = NULL;
+  char *interface = NULL;
   char *file = NULL;
-  int time = NULL;
+  char s_now[256];
+  int tps = 0;
   int protocole = CAN_RAW;
-  int t_tamp = 0;
+  int timestamp = 0;
   int difference = 0;
 
 
-
+  /*Structure declaration*/
   struct sockaddr_can addr;
-  struct can_frame frame;	// création de la variable frame / celle que j'utilise pour remplir ma trame
+  struct can_frame frame;	//frame struct
   struct ifreq ifr;
+  struct can_filter rfilter[1];
 
-  while ((opt = getopt (argc, argv, "i:f:t:z:S?")) != -1)	// parser la ligne de commande 
+  
+  time_t t = time (NULL);
+  struct tm tm_now = *localtime (&t);
+  strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);
+
+
+  
+  while ((opt = getopt (argc, argv, "i:f:t:z:Sh")) != -1) //parsing command line 
     {
       switch (opt)
 	{
 	case 'i':
-	  N_interf = optarg;
+	  interface = optarg; //interface name (can0)
 	  break;
 
 	case 'f':
-	  file = optarg;
+	  file = optarg; //file name (candump_255)
 	  break;
 
 	case 't':
-	  time = atoi (optarg);
+	  tps = atoi (optarg);
 	  break;
 
 	case 'z':
-	  protocole = atoi (optarg);
+	  protocole = atoi (optarg); 
 	  break;
 
 	case 'S':
-	  t_tamp = 1;
+	  timestamp = 1; //whit or whithout Timestamp
 	  break;
 
-	case '?':
+	case 'h':
 
 	default:
 	  printf ("\n");
+#ifdef DATE
+	  printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__, __TIME__);
+	  printf (" \t Le programme a ete execute le %s",s_now);
+#endif	  
 	  utility ();
 	  printf ("\n");
 	  return 1;
@@ -83,10 +102,19 @@ main (int argc, char *argv[])
 	}
 
     }
-  printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n", N_interf,
-	  file, time, protocole);
 
-  if ((sock = socket (PF_CAN, SOCK_RAW, protocole)) < 0)	//création de socket
+    if ((interface == NULL) || (file == NULL) )
+	{
+		printf("Options mal renseignees\n");
+		
+		return 1;
+	}
+
+  printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n", interface,
+	  file, tps, protocole);
+
+  /*création de socket*/
+  if ((sock = socket (PF_CAN, SOCK_RAW, protocole)) < 0)	
     {
       perror ("socket");	// print error, sert au traitement des erreurs
       return 1;
@@ -94,7 +122,8 @@ main (int argc, char *argv[])
 
   addr.can_family = AF_CAN;
 
-  strcpy (ifr.ifr_name, N_interf);	// N_interf = argv[1]
+  /*interface = argv[1]*/
+  strcpy (ifr.ifr_name, interface);	
   if (ioctl (sock, SIOCGIFINDEX, &ifr) < 0)
     {
       perror ("SIOCGIFINDEX");
@@ -103,84 +132,112 @@ main (int argc, char *argv[])
 
   addr.can_ifindex = ifr.ifr_ifindex;
 
-  if (bind (sock, (struct sockaddr *) &addr, sizeof (addr)) < 0)	// lier à un point de communication défini
+  /*lier à un point de communication défini*/
+  if (bind (sock, (struct sockaddr *) &addr, sizeof (addr)) < 0)	
     {
       perror ("bind");
       return 1;
     }
 
 
-  FILE *fichier = NULL;
+  FILE *fichier1 = NULL;
 
   if (argc > 1)
     {
-      fichier = fopen (file, "r");	// permet de mettre mon fichier en paramètre et de l'ouvrir
+    	printf("%d\n",argc);
+    	
+    	      fichier1 = fopen (file, "r");	// permet de mettre mon fichier en paramètre et de l'ouvrir
     }
-  printf (" \t Ce fichier a ete compile le %s a %s \n\n", __DATE__, __TIME__);
 
 
-  if (fichier != NULL)
+ 	int f = check(file,var_trames);
+ 	
+ 	if (check(file,var_trames)==1) 
+ 	{
+ 		 	printf("File check integrity is not correct \n");
+
+ 	}else
+ 		{
+ 			printf("File check integrity is  correct \n");
+ 			if  (argc < 6){
+ 				printf("Error with program argument \n");
+ 				return -1;
+ 			}
+
+ 		}
+
+
+  if (fichier1 != NULL)
     {
 
-      while (!feof (fichier))	// lecture jusqu'à la fin du fichier
+      while (!feof (fichier1))	// lecture jusqu'à la fin du fichier
 	{
-	  if (t_tamp == 1)
+	  if (timestamp == 1)
 	    {
-	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &Tst_trame.sec_tps,
-		      &Tst_trame.usec_tps, Tst_trame.Nom_interface,
-		      &Tst_trame.Id, &Tst_trame.taille);
+	      fscanf (fichier1, " (%ld.%d) %s  %x  [%hhx]", &var_trames.sec_tps,
+		      &var_trames.usec_tps, var_trames.Nom_interface,
+		      &var_trames.Id, &var_trames.taille);
 
 	      printf (" La trame est la suivante : (%ld.%d) %s %x [%x]",
-		      Tst_trame.sec_tps, Tst_trame.usec_tps,
-		      Tst_trame.Nom_interface, Tst_trame.Id,
-		      Tst_trame.taille);
+		      var_trames.sec_tps, var_trames.usec_tps,
+		      var_trames.Nom_interface, var_trames.Id,
+		      var_trames.taille);
 
-	     /* difference = diff(Tst_trame.usec_tps, Tst_trame.sec_tps);
-	      printf ("Diff = %d \n", difference);*/
+	      //difference(var_trames);
 
 	    }
 
 	  else
 	    {
-	      fscanf (fichier, " %s  %x  [%hhx]", Tst_trame.Nom_interface, &Tst_trame.Id, &Tst_trame.taille);	// lit et affecte dans une variable
-
-	      if (Tst_trame.taille > 8)	// condition pour la taille
+	      /*lit et affecte dans une variable*/	
+	      fscanf (fichier1, " %s  %x [%hhx]", var_trames.Nom_interface, &var_trames.Id, &var_trames.taille);	
+          
+          /*condition pour la taille*/
+	      if (var_trames.taille > 8)	 
 		{
-		  fclose (fichier);
+		  fclose (fichier1);
 		}
 	      else
 		{
 
 		  printf (" La trame est la suivante :" "%s %x [%x]",
-			  Tst_trame.Nom_interface, Tst_trame.Id,
-			  Tst_trame.taille);
+			  var_trames.Nom_interface, var_trames.Id,
+			  var_trames.taille);
 		}
 	    }
 
-	  for (i = 0; i < Tst_trame.taille; i++)	//2eme boucle
+	  for (i = 0; i < var_trames.taille; i++)	//2eme boucle
 	    {
-	      fscanf (fichier, " %hhx ", &Tst_trame.data[i]);	// hhx pour 8 bits        // lit et affecte dans une variable
-	      printf (" %02x ", Tst_trame.data[i]);	// affichage de la fin de la trame
+	      fscanf (fichier1, " %hhx ", &var_trames.data[i]);	// hhx pour 8 bits        // lit et affecte dans une variable
+	      printf (" %02x ", var_trames.data[i]);	// affichage de la fin de la trame
 
 	    }
 	  printf ("\n");
 
+     /* Permet de générer un id de 29 bits*/
+	 frame.can_id = var_trames.Id;
 
+	  if(var_trames.Id > 0x7FF) // 0x000007FFU
+	  {
 
-	  frame.can_id = Tst_trame.Id;	// remplissage de frame
-	  frame.can_dlc = Tst_trame.taille;	// remplissage de frame
+	  	frame.can_id |= CAN_EFF_FLAG;
+	  }  
+
+	  /*remplissage de frame*/
+	  frame.can_dlc = var_trames.taille;	
 	  /*printf (" Frame.id = %02x , Frame.taille = [%x] ",
-	     frame.can_id, frame.can_dlc); */
+	     frame.can_id  , frame.can_dlc); */
 
-	  for (l = 0; l < Tst_trame.taille; l++)
+	  for (l = 0; l < var_trames.taille; l++)
 
 	    {
 
-	      frame.data[l] = Tst_trame.data[l];	// remplissage de frame
+	      frame.data[l] = var_trames.data[l];	// remplissage de frame
 	      //printf ("Frame [%d] : %02x ", l, frame.data[l]);
 
 	    }
-	  nbytes = write (sock, &frame, sizeof (frame));	//écriture de socket
+	  /* Ecriture de socket*/  
+	  nbytes = write (sock, &frame, sizeof (frame));	
 	  if (nbytes < 0)
 	    {
 	      if (errno = ENOBUFS)	//gérer la mémoire vive
@@ -195,7 +252,7 @@ main (int argc, char *argv[])
 		}
 
 	    }
-	  sleep (time);	// attente entre chaques écritures des trames
+	  sleep (tps);		// attente entre chaques écritures des trames
 	  printf ("\n\n");
 
 	}
@@ -207,11 +264,11 @@ main (int argc, char *argv[])
   else
     {
 
-      perror ("Impossible d'ouvrir le fichier candump \n");
-
+      printf ("Impossible d'ouvrir le fichier %s \n", file);
+      return 1; 
 
     }
-  fclose (fichier);		// fermeture du fichier
+  fclose (fichier1);		// fermeture du fichier
 
   return 0;
 }

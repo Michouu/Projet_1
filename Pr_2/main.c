@@ -31,23 +31,15 @@ the interface due to CAN_RAW.
 
 #include "fonctions.h"
 
-/*#define CAN_RAW 1
-#define CAN_SRAW 7*/
 
-/*enum FILE_RET{
-	OK,
-	IOERROR,
-	FILEPATHEERRO
-}*/
-
-
-int main (int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
-	Tst_trame var_trames;
+  Tst_trame var_trames;
 
-  /*Déclaration de mes variables*/
+  /*Variable declaration */
   int i, j, l;
-  int sock;
+  int sock; //socket
   int nbytes, opt;
   char *interface = NULL;
   char *file = NULL;
@@ -58,36 +50,29 @@ int main (int argc, char *argv[])
   int difference = 0;
 
 
-  /*Déclaration de mes structures*/
+  /*Structure declaration */
   struct sockaddr_can addr;
-  struct can_frame frame;	//frame variable
+  struct can_frame frame;	//frame struct
   struct ifreq ifr;
   struct can_filter rfilter[1];
 
-  
+
   time_t t = time (NULL);
   struct tm tm_now = *localtime (&t);
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);
 
-  /*Options lors de la compilation*/
-  /*if (argc == 5)
-  {
-  	
-  	printf("Pas assez d'arguments\n");
-  	return -1;
 
-  }*/
-  
-  while ((opt = getopt (argc, argv, "i:f:t:z:Sh")) != -1) //parsing command line 
+
+  while ((opt = getopt (argc, argv, "i:f:t:z:Sh")) != -1)	//parsing command line 
     {
       switch (opt)
 	{
 	case 'i':
-	  interface = optarg;
+	  interface = optarg;	//interface name (can0)
 	  break;
 
 	case 'f':
-	  file = optarg;
+	  file = optarg;	//file name (candump_255)
 	  break;
 
 	case 't':
@@ -99,7 +84,7 @@ int main (int argc, char *argv[])
 	  break;
 
 	case 'S':
-	  timestamp = 1;
+	  timestamp = 1;	//whit or whithout Timestamp
 	  break;
 
 	case 'h':
@@ -107,9 +92,10 @@ int main (int argc, char *argv[])
 	default:
 	  printf ("\n");
 #ifdef DATE
-	  printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__, __TIME__);
-	  printf (" \t Le programme a ete execute le %s",s_now);
-#endif	  
+	  printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__,
+		  __TIME__);
+	  printf (" \t Le programme a ete execute le %s", s_now);
+#endif
 	  utility ();
 	  printf ("\n");
 	  return 1;
@@ -119,27 +105,29 @@ int main (int argc, char *argv[])
 
     }
 
-    if ((interface == NULL) || (file == NULL) )
-	{
-		printf("Options mal renseignees\n");
-		
-		return 1;
-	}
-
-  printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n", interface,
-	  file, tps, protocole);
-
-  /*création de socket*/
-  if ((sock = socket (PF_CAN, SOCK_RAW, protocole)) < 0)	
+  if ((interface == NULL) || (file == NULL))
     {
-      perror ("socket");	// print error, sert au traitement des erreurs
+      printf ("Options mal renseignees\n");
+
+      return 1;
+    }
+
+  printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n",
+	  interface, file, tps, protocole);
+
+  /*Socket creation */
+  if ((sock = socket (PF_CAN, SOCK_RAW, protocole)) < 0) //protocole = CAN RAW  
+    {
+      perror ("socket");
       return 1;
     }
 
   addr.can_family = AF_CAN;
+  /* disable default receive filter on this RAW socket */
 
-  /*interface = argv[1]*/
-  strcpy (ifr.ifr_name, interface);	
+  /*interface = argv[1] */
+  strcpy (ifr.ifr_name, interface); //interface = CAN0
+  /* check if the frame fits into the CAN netdevice */
   if (ioctl (sock, SIOCGIFINDEX, &ifr) < 0)
     {
       perror ("SIOCGIFINDEX");
@@ -148,70 +136,72 @@ int main (int argc, char *argv[])
 
   addr.can_ifindex = ifr.ifr_ifindex;
 
-  /*lier à un point de communication défini*/
-  if (bind (sock, (struct sockaddr *) &addr, sizeof (addr)) < 0)	
+  /*link to a communicate point */
+  if (bind (sock, (struct sockaddr *) &addr, sizeof (addr)) < 0)
     {
       perror ("bind");
       return 1;
     }
 
 
-  FILE *fichier1 = NULL;
+  FILE *fichier = NULL;
 
   if (argc > 1)
     {
-    	printf("%d\n",argc);
-    	
-    	      fichier1 = fopen (file, "r");	// permet de mettre mon fichier en paramètre et de l'ouvrir
+      printf ("%d\n", argc);
+
+      fichier = fopen (file, "r");	
     }
 
 
- 	int f = check(file,var_trames);
- 	
- 	if (check(file,var_trames)==1) 
- 	{
- 		 	printf("File check integrity is not correct \n");
+  int f = check (file, var_trames);
 
- 	}else
- 		{
- 			printf("File check integrity is  correct \n");
- 			if  (argc < 6){
- 				printf("Error with program argument \n");
- 				return -1;
- 			}
+  if (check (file, var_trames) == 1)
+    {
+      printf ("File check integrity is not correct \n");
 
- 		}
+    }
+  else
+    {
+      printf ("File check integrity is  correct \n");
+      if (argc < 6)
+	{
+	  printf ("Error with program argument \n");
+	  return -1;
+	}
+
+    }
 
 
-  if (fichier1 != NULL)
+  if (fichier != NULL)
     {
 
-      while (!feof (fichier1))	// lecture jusqu'à la fin du fichier
+      while (!feof (fichier))	// reading until the end 
 	{
 	  if (timestamp == 1)
 	    {
-	      fscanf (fichier1, " (%ld.%d) %s  %x  [%hhx]", &var_trames.sec_tps,
-		      &var_trames.usec_tps, var_trames.Nom_interface,
-		      &var_trames.Id, &var_trames.taille);
+	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]",
+		      &var_trames.sec_tps, &var_trames.usec_tps,
+		      var_trames.Nom_interface, &var_trames.Id,
+		      &var_trames.taille);
 
 	      printf (" La trame est la suivante : (%ld.%d) %s %x [%x]",
 		      var_trames.sec_tps, var_trames.usec_tps,
 		      var_trames.Nom_interface, var_trames.Id,
 		      var_trames.taille);
 
-	      //difference(var_trames);
-
 	    }
 
 	  else
 	    {
-	      /*lit et affecte dans une variable*/	
-	      fscanf (fichier1, " %s  %x [%hhx]", var_trames.Nom_interface, &var_trames.Id, &var_trames.taille);	
-          
-          /*condition pour la taille*/
-	      if (var_trames.taille > 8)	 
+	      /*read and allocate into a variable */
+	      fscanf (fichier, " %s  %x [%hhx]", var_trames.Nom_interface,
+		      &var_trames.Id, &var_trames.taille);
+
+	      /*size condition */
+	      if (var_trames.taille > 8)
 		{
-		  fclose (fichier1);
+		  fclose (fichier);
 		}
 	      else
 		{
@@ -224,23 +214,23 @@ int main (int argc, char *argv[])
 
 	  for (i = 0; i < var_trames.taille; i++)	//2eme boucle
 	    {
-	      fscanf (fichier1, " %hhx ", &var_trames.data[i]);	// hhx pour 8 bits        // lit et affecte dans une variable
+	      fscanf (fichier, " %hhx ", &var_trames.data[i]);	// hhx pour 8 bits        // lit et affecte dans une variable
 	      printf (" %02x ", var_trames.data[i]);	// affichage de la fin de la trame
 
 	    }
 	  printf ("\n");
 
-     /* Permet de générer un id de 29 bits*/
-	 frame.can_id = var_trames.Id;
+	  /* Allow 29 bits ID */
+	  frame.can_id = var_trames.Id;
 
-	  if(var_trames.Id > 0x7FF) // 0x000007FFU
-	  {
+	  if (var_trames.Id > 0x7FF)	// 0x000007FFU
+	    {
 
-	  	frame.can_id |= CAN_EFF_FLAG;
-	  }  
+	      frame.can_id |= CAN_EFF_FLAG;
+	    }
 
-	  /*remplissage de frame*/
-	  frame.can_dlc = var_trames.taille;	
+	  /*filling of frame*/
+	  frame.can_dlc = var_trames.taille;
 	  /*printf (" Frame.id = %02x , Frame.taille = [%x] ",
 	     frame.can_id  , frame.can_dlc); */
 
@@ -248,17 +238,17 @@ int main (int argc, char *argv[])
 
 	    {
 
-	      frame.data[l] = var_trames.data[l];	// remplissage de frame
+	      frame.data[l] = var_trames.data[l];	/*filling of frame*/
 	      //printf ("Frame [%d] : %02x ", l, frame.data[l]);
 
 	    }
-	  /* Ecriture de socket*/  
-	  nbytes = write (sock, &frame, sizeof (frame));	
+	  /* Spcket writting  */
+	  nbytes = write (sock, &frame, sizeof (frame));
 	  if (nbytes < 0)
 	    {
-	      if (errno = ENOBUFS)	//gérer la mémoire vive
+	      if (errno = ENOBUFS)	//manage RAM 
 		{
-		  sched_yield ();	//provoque le thread
+		  sched_yield ();	//causes thread
 
 		}
 	      else
@@ -268,7 +258,7 @@ int main (int argc, char *argv[])
 		}
 
 	    }
-	  sleep (tps);		// attente entre chaques écritures des trames
+	  sleep (tps);		// waiting between every frame
 	  printf ("\n\n");
 
 	}
@@ -280,11 +270,11 @@ int main (int argc, char *argv[])
   else
     {
 
-      printf ("Impossible d'ouvrir le fichier %s \n", file);
-      return 1; 
+      printf ("Cannot open the file %s \n", file);
+      return 1;
 
     }
-  fclose (fichier1);		// fermeture du fichier
+  fclose (fichier);		
 
   return 0;
 }

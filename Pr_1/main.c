@@ -23,7 +23,7 @@ int
 main (int argc, char *argv[])
 {
 
-/*Déclaration de toutes mes variables*/
+/*Variable declaration*/
   int s;
   int nbytes, opt;
   char *interface = NULL;
@@ -33,26 +33,26 @@ main (int argc, char *argv[])
   unsigned char logfrmt = 0;
   unsigned char timestamp = 0;
 
-/*Déclaration de mes structure*/
+/*Structure declaration*/
   struct sockaddr_can addr;
   struct can_frame frame;
   struct ifreq ifr;
   struct timeval tv, last_tv;
 
-  
+
   time_t t = time (NULL);
   struct tm tm_now = *localtime (&t);
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);
 
 
-     /*last_tv.tv_usec = 0;
-	 last_tv.tv_sec = 0; */
-   //printf("usec = %010ld",last_tv.tv_usec);
+  /*last_tv.tv_usec = 0;
+     last_tv.tv_sec = 0; */
+  //printf("usec = %010ld",last_tv.tv_usec);
 
-  /*Options lors de l'exécution*/
+  /*Execution option */
   while ((opt = getopt (argc, argv, "i:w:t:h")) != -1)
-	{
-	  switch (opt)
+    {
+      switch (opt)
 	{
 	case 'i':
 	  interface = optarg;
@@ -62,16 +62,16 @@ main (int argc, char *argv[])
 	  chemin = optarg;
 	  break;
 
-	/*case 't':
-	  timestamp = optarg[0];
-	  if ((timestamp != 'a') && (timestamp != 'A') &&
-		  (timestamp != 'd') && (timestamp != 'z'))
-		{
-		  fprintf (stderr, "%s: unknown timestamp mode '%c' - ignored\n",
-			   basename (argv[0]), optarg[0]);
-		  timestamp = 0;
-		}
-	  break;*/
+	  /*case 't':
+	     timestamp = optarg[0];
+	     if ((timestamp != 'a') && (timestamp != 'A') &&
+	     (timestamp != 'd') && (timestamp != 'z'))
+	     {
+	     fprintf (stderr, "%s: unknown timestamp mode '%c' - ignored\n",
+	     basename (argv[0]), optarg[0]);
+	     timestamp = 0;
+	     }
+	     break; */
 
 	case 'h':
 
@@ -89,55 +89,54 @@ main (int argc, char *argv[])
 
 	}
 
-	}
+    }
 
-	  if (interface == NULL)
-	{
-	  printf ("Options mal renseignees\n");
-	  printf ("Tapez -h pour afficher l'aide\n");
-	  return 1;
+  if (interface == NULL)
+    {
+      printf ("Options are not correct\n");
+      printf ("Tape -h to help\n");
 
-	}
+    }
 
   /*switch (timestamp)
-        {
+     {
 
-        case 'a':           //absolute with timestamp 
-          printf ("(%010ld.%06ld) ", last_tv.tv_sec, last_tv.tv_usec);
-          break;
+     case 'a':           //absolute with timestamp 
+     printf ("(%010ld.%06ld) ", last_tv.tv_sec, last_tv.tv_usec);
+     break;
 
-        case 'A':           //absolute with date 
-          {
-        struct tm tm;
-        char timestring[25];
+     case 'A':           //absolute with date 
+     {
+     struct tm tm;
+     char timestring[25];
 
-        tm = *localtime (&tv.tv_usec);
-        strftime (timestring, 24, "%Y-%m-%d %H:%M:%S", &tm);
-        printf ("(%s.%06lu) ", timestring, last_tv.tv_usec);
-          }
-          break;
+     tm = *localtime (&tv.tv_usec);
+     strftime (timestring, 24, "%Y-%m-%d %H:%M:%S", &tm);
+     printf ("(%s.%06lu) ", timestring, last_tv.tv_usec);
+     }
+     break;
 
-        default:
-          break;
+     default:
+     break;
 
-        }*/
+     } */
 
 
 
   /* Create the socket */
   if ((s = socket (PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
-	{
-	  perror ("socket");    // print error, sert au traitement des erreurs
-	  return 1;
-	}
+    {
+      perror ("socket");	// print error
+      return 1;
+    }
 
   /* Locate the interface you wish to use */
   strcpy (ifr.ifr_name, interface);
   if (ioctl (s, SIOCGIFINDEX, &ifr) < 0)
-	{
-	  perror ("SIOCGIFINDEX");
-	  return 1;
-	}
+    {
+      perror ("SIOCGIFINDEX");
+      return 1;
+    }
 
   addr.can_family = AF_CAN;
   addr.can_ifindex = ifr.ifr_ifindex;
@@ -146,67 +145,67 @@ main (int argc, char *argv[])
 
   printf ("Read a CAN frame from interface %s \n", ifr.ifr_name);
 
-	/* Select that CAN interface, and bind the socket to it */
-  if (bind (s, (struct sockaddr *) &addr, sizeof (addr)) < 0)   // lier à un point de communication défini
-	{
-	  perror ("bind");
-	  return 1;
-	}
+  /* Select that CAN interface, and bind the socket to it */
+  if (bind (s, (struct sockaddr *) &addr, sizeof (addr)) < 0)	// link to a communication point
+    {
+      perror ("bind");
+      return 1;
+    }
 
 
   int i;
   while (1)
-	{
-	  /*Lire les trames envoyées par les sockets*/ 	
-	  nbytes = read (s, &frame, sizeof (frame));
-	  if (nbytes > 0)
+    {
+      /*Read frame send from socket */
+      nbytes = read (s, &frame, sizeof (frame));
+      if (nbytes > 0)
 	{
 	  FILE *fichier = NULL;
 	  fichier = fopen (chemin, "a+");
 
-	  if (chemin != NULL && fichier != NULL)
+	  if (chemin != NULL && fichier != NULL)	// writting into a file
+	    {
+
+	      /*Reading and writting */
+	      fprintf (fichier, " %s  %x  [%d] ", ifr.ifr_name, frame.can_id,
+		       frame.can_dlc);
+	      for (i = 0; i < frame.can_dlc; i++)
 		{
 
-		  /*Lecture + Ecriture des trames dans un fichier texte*/	
-		  fprintf (fichier, " %s  %x  [%d] ", ifr.ifr_name, frame.can_id,
-			   frame.can_dlc);
-		  for (i = 0; i < frame.can_dlc; i++)   //2eme boucle
-		{
-
-		  fprintf (fichier, " %02x ", frame.data[i]);   // affic
+		  fprintf (fichier, " %02x ", frame.data[i]);
 		}
-		  fprintf (fichier, "\n");
+	      fprintf (fichier, "\n");
 
-		  fclose (fichier);
-		}
+	      fclose (fichier);
+	    }
 
 	  else
+	    {
+
+
+	      printf (" %s  %x  [%d] ", ifr.ifr_name, frame.can_id,
+		      frame.can_dlc);
+
+	      for (i = 0; i < frame.can_dlc; i++)
 		{
 
-               
-		  printf (" %s  %x  [%d] ", ifr.ifr_name, frame.can_id,
-			  frame.can_dlc);
-
-		  for (i = 0; i < frame.can_dlc; i++)   //2eme boucle
-		{
-
-		  printf (" %02x ", frame.data[i]); // affic
+		  printf (" %02x ", frame.data[i]);	// affic
 		}
-		  printf ("\n");
-		}
+	      printf ("\n");
+	    }
 
 	}
 
 
-	  else
+      else
 	{
 	  error ("Error reading from socket");
 	  return 1;
 	}
 
 
-	  usleep (100000);
-	}
+      usleep (100000);
+    }
 
   close (s);
   return 0;
