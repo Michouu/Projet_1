@@ -8,7 +8,7 @@
 
 //float difference ()
 
-int
+void
 utility ()
 {
 
@@ -24,7 +24,7 @@ utility ()
 
   fclose (fichier);
 
-  return 0;
+ 
 }
 
 

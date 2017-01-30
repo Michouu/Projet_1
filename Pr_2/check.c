@@ -8,7 +8,7 @@
 
 
 
-int check (char *file,Tst_trame trames)
+int check (char *file)
 {
   int  flag=0;
   

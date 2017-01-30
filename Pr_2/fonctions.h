@@ -14,6 +14,8 @@ typedef struct
 
 
 void usage ();
-int check (char *file,Tst_trame trames);
+int check (char *file);
+void utility ();
+
 
 

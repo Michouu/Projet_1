@@ -113,8 +113,8 @@ main (int argc, char *argv[])
 
 	      if (trame.taille > 8)	// size condition
 		{
-		  printf ("Frame size too big : %u \n",
-			  sizeof (trame.taille));
+		  printf ("Frame size too big : %hhx \n",
+			  trame.taille);
 
 		  return 1;
 		}

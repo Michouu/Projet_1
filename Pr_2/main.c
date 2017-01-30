@@ -31,6 +31,8 @@ the interface due to CAN_RAW.
 
 #include "fonctions.h"
 
+#include "versions.h"
+
 
 int
 main (int argc, char *argv[])
@@ -50,6 +52,7 @@ main (int argc, char *argv[])
   int difference = 0;
 
 
+
   /*Structure declaration */
   struct sockaddr_can addr;
   struct can_frame frame;	//frame struct
@@ -63,7 +66,7 @@ main (int argc, char *argv[])
 
 
 
-  while ((opt = getopt (argc, argv, "i:f:t:z:Sh")) != -1)	//parsing command line 
+  while ((opt = getopt (argc, argv, "i:f:t:z:vSh")) != -1)	//parsing command line 
     {
       switch (opt)
 	{
@@ -87,16 +90,18 @@ main (int argc, char *argv[])
 	  timestamp = 1;	//whit or whithout Timestamp
 	  break;
 
+	
+	case 'v':
+	  printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
+	  printf (" \t This file compiled %s at %s \n", __DATE__, __TIME__);
+	  printf (" \t This programm implemented  %s \n", s_now);
+	  break;  
+
 	case 'h':
 
 	default:
 	  printf ("\n");
-#ifdef DATE
-	  printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__,
-		  __TIME__);
-	  printf (" \t Le programme a ete execute le %s", s_now);
-#endif
-	  utility ();
+	  utility();
 	  printf ("\n");
 	  return 1;
 	  break;
@@ -148,29 +153,11 @@ main (int argc, char *argv[])
 
   if (argc > 1)
     {
-      printf ("%d\n", argc);
+      //printf ("%d\n", argc);
 
       fichier = fopen (file, "r");	
     }
 
-
-  int f = check (file, var_trames);
-
-  if (check (file, var_trames) == 1)
-    {
-      printf ("File check integrity is not correct \n");
-
-    }
-  else
-    {
-      printf ("File check integrity is  correct \n");
-      if (argc < 6)
-	{
-	  printf ("Error with program argument \n");
-	  return -1;
-	}
-
-    }
 
 
   if (fichier != NULL)
@@ -178,17 +165,30 @@ main (int argc, char *argv[])
 
       while (!feof (fichier))	// reading until the end 
 	{
-	  if (timestamp == 1)
+	  if ((timestamp == 1) && (check (file) == 0))
 	    {
 	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]",
 		      &var_trames.sec_tps, &var_trames.usec_tps,
 		      var_trames.Nom_interface, &var_trames.Id,
 		      &var_trames.taille);
 
-	      printf (" La trame est la suivante : (%ld.%d) %s %x [%x]",
+	      
+	      	 printf (" frames : (%ld.%d) %s %x [%x]",
 		      var_trames.sec_tps, var_trames.usec_tps,
 		      var_trames.Nom_interface, var_trames.Id,
 		      var_trames.taille);
+	      
+	     
+
+	    }
+
+	   else if ((timestamp == 0) && (check (file) == 0))
+	    {
+	      printf ("File check integrity is not correct \n");
+	      
+		  printf ("Check is timestamp file is correct and argument -S present\n");
+	      return 1;
+
 
 	    }
 
@@ -201,12 +201,14 @@ main (int argc, char *argv[])
 	      /*size condition */
 	      if (var_trames.taille > 8)
 		{
-		  fclose (fichier);
+		  return 1; ;
 		}
+
 	      else
 		{
 
-		  printf (" La trame est la suivante :" "%s %x [%x]",
+	 
+		  printf (" frame :" "%s %x [%x]",
 			  var_trames.Nom_interface, var_trames.Id,
 			  var_trames.taille);
 		}
@@ -214,7 +216,9 @@ main (int argc, char *argv[])
 
 	  for (i = 0; i < var_trames.taille; i++)	//2eme boucle
 	    {
+	    	 
 	      fscanf (fichier, " %hhx ", &var_trames.data[i]);	// hhx pour 8 bits        // lit et affecte dans une variable
+	     
 	      printf (" %02x ", var_trames.data[i]);	// affichage de la fin de la trame
 
 	    }
