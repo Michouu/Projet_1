@@ -14,13 +14,12 @@
 #include <linux/can/raw.h>
 #include <sys/types.h>
 #include "fonction.h"
+#include "versions.h"
 
 
 
 
-/*argv un tableau de pointeurs   argc indique le nbr de chaines de cara sur lequel pointe argv*/
-int
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
 
 /*Variable declaration*/
@@ -50,7 +49,7 @@ main (int argc, char *argv[])
   //printf("usec = %010ld",last_tv.tv_usec);
 
   /*Execution option */
-  while ((opt = getopt (argc, argv, "i:w:t:h")) != -1)
+  while ((opt = getopt (argc, argv, "i:w:t:hv")) != -1)
     {
       switch (opt)
 	{
@@ -75,13 +74,14 @@ main (int argc, char *argv[])
 
 	case 'h':
 
+    case 'v':
+     printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
+     printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__, __TIME__);
+	 printf (" \t Le programme a ete execute le %s\n", s_now);
+	 break; 
+
 	default:
 	  printf ("\n");
-#ifdef DATE
-	  printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__,
-		  __TIME__);
-	  printf (" \t Le programme a ete execute le %s", s_now);
-#endif
 	  utility ();
 	  printf ("\n");
 	  return 1;
