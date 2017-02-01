@@ -16,6 +16,7 @@ typedef struct
 void usage ();
 int check (char *file);
 void utility ();
+void endianess (unsigned char d,Tst_trame (*tableau));
 
 
 

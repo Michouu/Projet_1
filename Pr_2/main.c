@@ -50,6 +50,8 @@ main (int argc, char *argv[])
   int protocole = CAN_RAW;
   int timestamp = 0;
   int difference = 0;
+  unsigned char c =0;
+
 
 
 
@@ -117,6 +119,7 @@ main (int argc, char *argv[])
       return 1;
     }
 
+    
   printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n",
 	  interface, file, tps, protocole);
 
@@ -173,7 +176,7 @@ main (int argc, char *argv[])
 		      &var_trames.taille);
 
 	      
-	      	 printf (" frames : (%ld.%d) %s %x [%x]",
+	      	 printf (" frame : (%ld.%d) %s %x [%x]",
 		      var_trames.sec_tps, var_trames.usec_tps,
 		      var_trames.Nom_interface, var_trames.Id,
 		      var_trames.taille);
@@ -201,7 +204,7 @@ main (int argc, char *argv[])
 	      /*size condition */
 	      if (var_trames.taille > 8)
 		{
-		  return 1; ;
+		  return 1; 
 		}
 
 	      else
@@ -214,12 +217,11 @@ main (int argc, char *argv[])
 		}
 	    }
 
-	  for (i = 0; i < var_trames.taille; i++)	//2eme boucle
+	  for (i = 0; i < var_trames.taille; i++)	
 	    {
 	    	 
-	      fscanf (fichier, " %hhx ", &var_trames.data[i]);	// hhx pour 8 bits        // lit et affecte dans une variable
-	     
-	      printf (" %02x ", var_trames.data[i]);	// affichage de la fin de la trame
+	      fscanf (fichier, " %hhx ", &var_trames.data[i]);	
+	      printf (" %02x ", var_trames.data[i]);	
 
 	    }
 	  printf ("\n");
@@ -238,15 +240,29 @@ main (int argc, char *argv[])
 	  /*printf (" Frame.id = %02x , Frame.taille = [%x] ",
 	     frame.can_id  , frame.can_dlc); */
 
-	  for (l = 0; l < var_trames.taille; l++)
+	  
+	  //endianess (var_trames.data[8], c);
+
+	 c =  var_trames.data[0];
+	 var_trames.data[0] = var_trames.data[3];
+	 var_trames.data[3] = c;
+
+	 c =  var_trames.data[1];
+	 var_trames.data[1] = var_trames.data[2];
+	 var_trames.data[2] = c;
+
+	
+
+	 for (l = 0; l < var_trames.taille; l++)
 
 	    {
 
-	      frame.data[l] = var_trames.data[l];	/*filling of frame*/
-	      //printf ("Frame [%d] : %02x ", l, frame.data[l]);
-
+	      frame.data[l]  = var_trames.data[l];	/*filling of frame*/
+	      printf ("Frame [%d] : %02x ", l, frame.data[l]);
 	    }
-	  /* Spcket writting  */
+
+
+	  /* Socket writting  */
 	  nbytes = write (sock, &frame, sizeof (frame));
 	  if (nbytes < 0)
 	    {
@@ -262,7 +278,7 @@ main (int argc, char *argv[])
 		}
 
 	    }
-	  sleep (tps);		// waiting between every frame
+	  usleep (tps);		// waiting between every frame
 	  printf ("\n\n");
 
 	}

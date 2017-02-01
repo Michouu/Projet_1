@@ -23,8 +23,7 @@ comparer (unsigned long trame_compteur, unsigned long val)
 
     {
       printf ("-> Trame KO  \n");
-      fprintf (stderr,
-	       " Valeur attendu : 0x%02lx\n Valeur relevée : 0x%02lx\n", val,
+      fprintf (stderr, " Valeur attendu : 0x%02lx\n Valeur relevée : 0x%02lx\n", val,
 	       trame_compteur);
     }
 

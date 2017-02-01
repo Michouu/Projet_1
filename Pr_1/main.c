@@ -31,6 +31,7 @@ int main (int argc, char *argv[])
   unsigned char log = 0;
   unsigned char logfrmt = 0;
   unsigned char timestamp = 0;
+  unsigned char c = 0;
 
 /*Structure declaration*/
   struct sockaddr_can addr;
@@ -186,6 +187,15 @@ int main (int argc, char *argv[])
 	      printf (" %s  %x  [%d] ", ifr.ifr_name, frame.can_id,
 		      frame.can_dlc);
 
+        /*c =  frame.data[0];
+        frame.data[0] = frame.data[3];
+        frame.data[3] = c;
+
+        c =  frame.data[1];
+        frame.data[1] = frame.data[2];
+        frame.data[2] = c;*/
+
+
 	      for (i = 0; i < frame.can_dlc; i++)
 		{
 
@@ -204,7 +214,7 @@ int main (int argc, char *argv[])
 	}
 
 
-      usleep (100000);
+      usleep (1);
     }
 
   close (s);
