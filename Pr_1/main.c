@@ -72,14 +72,15 @@ int main (int argc, char *argv[])
 	     timestamp = 0;
 	     }
 	     break; */
-
-	case 'h':
-
-    case 'v':
+  case 'v':
      printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
      printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__, __TIME__);
-	 printf (" \t Le programme a ete execute le %s\n", s_now);
-	 break; 
+   printf (" \t Le programme a ete execute le %s\n", s_now);
+   break; 
+  
+	case 'h':
+
+    
 
 	default:
 	  printf ("\n");
@@ -96,6 +97,7 @@ int main (int argc, char *argv[])
     {
       printf ("Options are not correct\n");
       printf ("Tape -h to help\n");
+      return 1 ; 
 
     }
 

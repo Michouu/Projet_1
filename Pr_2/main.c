@@ -258,7 +258,7 @@ main (int argc, char *argv[])
 	    {
 
 	      frame.data[l]  = var_trames.data[l];	/*filling of frame*/
-	      printf ("Frame [%d] : %02x ", l, frame.data[l]);
+	      //printf ("Frame [%d] : %02x ", l, frame.data[l]);
 	    }
 
 
@@ -278,7 +278,7 @@ main (int argc, char *argv[])
 		}
 
 	    }
-	  usleep (tps);		// waiting between every frame
+	  sleep (tps);		// waiting between every frame
 	  printf ("\n\n");
 
 	}
