@@ -1,12 +1,10 @@
-h1
+body
 {
+	background-image: url("lets-go-min.jpeg");
 
-    color: blue;
+    background-attachment: fixed; /* Le fond restera fixe */
 
+    background-repeat: no-repeat; /* Le fond ne sera pas répété */
+
+    background-position: top right; /* Le fond sera placé en haut à droite */
 }
-
-ol
-{
-	color: red;
-}
-
