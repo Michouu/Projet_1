@@ -243,13 +243,7 @@ main (int argc, char *argv[])
 	  
 	  //endianess (var_trames.data[8], c);
 
-	 c =  var_trames.data[0];
-	 var_trames.data[0] = var_trames.data[3];
-	 var_trames.data[3] = c;
 
-	 c =  var_trames.data[1];
-	 var_trames.data[1] = var_trames.data[2];
-	 var_trames.data[2] = c;
 
 	
 
