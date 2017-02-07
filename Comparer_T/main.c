@@ -99,8 +99,7 @@ main (int argc, char *argv[])
 	  else if ((timestamp == 0) && (check (file) == 0))
 	    {
 	      printf ("File check integrity is not correct \n");
-	      printf
-		("Check is timestamp file is correct and argument -S present\n");
+	      printf ("Check is timestamp file is correct and argument -S present\n");
 	      return 1;
 
 

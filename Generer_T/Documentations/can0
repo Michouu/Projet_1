@@ -2,5 +2,5 @@ BUS CAN : sudo ip link set can0 up type can bitrate 500000
           sudo ifconfig can0 down
 
 PCM : sudo minicom -D /dev/ttyUSB0 
-      ip link set can0 up type can bitrate 5000000
+      ip link set can0 up type can bitrate 500000
       candump can0 -z 7	

@@ -27,6 +27,7 @@ int main (int argc, char *argv[])
   int nbytes, opt;
   char *interface = NULL;
   char *chemin = NULL;
+  int protocole = CAN_RAW;
   char s_now[256];
   unsigned char log = 0;
   unsigned char logfrmt = 0;
@@ -50,7 +51,7 @@ int main (int argc, char *argv[])
   //printf("usec = %010ld",last_tv.tv_usec);
 
   /*Execution option */
-  while ((opt = getopt (argc, argv, "i:w:t:hv")) != -1)
+  while ((opt = getopt (argc, argv, "i:w:t:z:hv")) != -1)
     {
       switch (opt)
 	{
@@ -61,6 +62,10 @@ int main (int argc, char *argv[])
 	case 'w':
 	  chemin = optarg;
 	  break;
+
+  case 'z':
+    protocole = atoi (optarg);
+    break;  
 
 	  /*case 't':
 	     timestamp = optarg[0];
@@ -75,7 +80,7 @@ int main (int argc, char *argv[])
   case 'v':
      printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
      printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__, __TIME__);
-   printf (" \t Le programme a ete execute le %s\n", s_now);
+     printf (" \t Le programme a ete execute le %s\n", s_now);
    break; 
   
 	case 'h':
@@ -127,7 +132,7 @@ int main (int argc, char *argv[])
 
 
   /* Create the socket */
-  if ((s = socket (PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
+  if ((s = socket (PF_CAN, SOCK_RAW, protocole)) < 0)
     {
       perror ("socket");	// print error
       return 1;
@@ -201,7 +206,7 @@ int main (int argc, char *argv[])
 	      for (i = 0; i < frame.can_dlc; i++)
 		{
 
-		  printf (" %02x ", frame.data[i]);	// affic
+		  printf (" %02x ", frame.data[i]);	
 		}
 	      printf ("\n");
 	    }
