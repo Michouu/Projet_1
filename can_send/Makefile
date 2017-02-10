@@ -22,3 +22,8 @@ compiler: $(SOURCE)
 
 clean:
 	rm -f $(EXEC)
+
+
+install:
+         install -d ${DESTDIR}/usr/bin
+         install -m Generer ${DESTDIR}/usr/bin
