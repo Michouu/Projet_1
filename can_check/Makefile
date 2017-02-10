@@ -21,6 +21,6 @@ clean:
 
 
 
- install:
-         install -d ${DESTDIR}/usr/bin
-         install -m Comp ${DESTDIR}/usr/bin
+install:
+	install -d ${DESTDIR}/usr/bin
+	install -m Comp ${DESTDIR}/usr/bin
