@@ -23,4 +23,4 @@ clean:
 
 install:
 	install -d ${DESTDIR}/usr/bin
-	install -m Comp ${DESTDIR}/usr/bin
+	install -m 0755 Comp ${DESTDIR}/usr/bin
