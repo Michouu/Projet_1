@@ -26,7 +26,7 @@ main (int argc, char *argv[])
 
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);	//Clock Function
 
-
+  printf("SALUUUUUT");
 
   while ((opt = getopt (argc, argv, "f:SD:vh")) != -1)	// parse the commande line
     {

@@ -4,7 +4,7 @@
 
 
 CC?=gcc
-EXEC=Comp
+EXEC=canCheck
 SOURCE= $(wildcard *.c) fonction.h versions.h
 CFLAGS = -W 
 
