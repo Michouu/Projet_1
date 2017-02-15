@@ -7,7 +7,17 @@
 #include <time.h>
 #include "fonction.h"
 
-int
+
+void print_usage(char *prg)
+{
+	fprintf(stderr, "\nUsage: %s [options] <CAN interface>\n",prg);
+	fprintf(stderr, "Options: -f <file name>\n");
+	fprintf(stderr, "         -S with or without timestamp\n");
+	fprintf(stderr, " Example: \n");
+	fprintf(stderr, "./Comp -f file.txt -S\n");
+
+
+/*int
 utility ()
 {
 
@@ -20,17 +30,5 @@ utility ()
 	printf("Example:\n");
 	printf("./Comp -f file.txt -S\n");
 
-  /*FILE *fichier;
-
-
-
-  fichier = fopen ("aides.txt", "r");
-
-
-  while (!feof (fichier))
-    putchar (fgetc (fichier));
-
-  fclose (fichier);
-
-  return 0;*/
+  */
 }
