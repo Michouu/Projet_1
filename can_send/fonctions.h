@@ -13,10 +13,11 @@ typedef struct
   
 
 
-void usage ();
+
 int check (char *file);
-void utility ();
+void print_usage(char *prg);
 void endianess (unsigned char d,Tst_trame (*tableau));
+void utility ();
 
 
 

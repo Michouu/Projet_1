@@ -51,6 +51,7 @@ main (int argc, char *argv[])
   int timestamp = 0;
   int difference = 0;
   unsigned char c =0;
+  extern int optind, opterr, optopt;
 
 
 
@@ -97,16 +98,31 @@ main (int argc, char *argv[])
 	  printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
 	  printf (" \t This file compiled %s at %s \n", __DATE__, __TIME__);
 	  printf (" \t This programm implemented  %s \n", s_now);
-	  break;  
+	  break;
 
-	case 'h':
+	case 'h':  
+
+
+	case '?':
+		    print_usage(argv[0]);
+		    exit(0);
+		    break;
+
+	    default:
+		    fprintf(stderr, "Unknown option %c\n", opt);
+		    print_usage(argv[0]);
+		    exit(1);
+		    break;
+
+	  
+	/*case 'h':
 
 	default:
 	  printf ("\n");
 	  utility();
 	  printf ("\n");
 	  return 1;
-	  break;
+	  break;*/
 
 	}
 
@@ -114,7 +130,7 @@ main (int argc, char *argv[])
 
   if ((interface == NULL) || (file == NULL))
     {
-      printf ("Options mal renseignees\n");
+      printf ("Wrong usage type -h for help\n");
 
       return 1;
     }

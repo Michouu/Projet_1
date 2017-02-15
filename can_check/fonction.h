@@ -22,3 +22,4 @@ typedef struct
 void comparer (unsigned long trame_compteur, unsigned long val);
 int check (char *file);
 int utility ();
+void print_usage(char *prg);
