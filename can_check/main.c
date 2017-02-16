@@ -163,7 +163,8 @@ main (int argc, char *argv[])
   else
     {
     	if (argv[0] != NULL)  {
-    	printf("optind = %d argc[%d]\n", optind, argc);
+	fprintf(stderr, "Expected argument after options\n");
+      	printf("optind = %d argc[%d]\n", optind, argc);
 		print_usage(argv[0]);
 		return 1;
 	}

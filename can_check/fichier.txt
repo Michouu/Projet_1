@@ -1,0 +1,44 @@
+optarg = candump_255_ok.txt argc[3] argv[-f]
+	 file = candump_255_ok.txt
+
+ Frame :can0 652 [8] 00  00  00  00  00  00  00  00 
+C = 0x00
+-> Trame OK 
+
+ Frame :can0 652 [8] 01  00  00  00  00  00  00  00 
+C = 0x01
+-> Trame OK 
+
+ Frame :can0 652 [8] 02  00  00  00  00  00  00  00 
+C = 0x02
+-> Trame OK 
+
+ Frame :can0 652 [8] 03  00  00  00  00  00  00  00 
+C = 0x03
+-> Trame OK 
+
+ Frame :can0 652 [8] 04  00  00  00  00  00  00  00 
+C = 0x04
+-> Trame OK 
+
+ Frame :can0 652 [8] 05  00  00  00  00  00  00  00 
+C = 0x05
+-> Trame OK 
+
+ Frame :can0 652 [8] 06  00  00  00  00  00  00  00 
+C = 0x06
+-> Trame OK 
+
+ Frame :can0 652 [8] 07  00  00  00  00  00  00  00 
+C = 0x07
+-> Trame OK 
+
+ Frame :can0 652 [8] 08  00  00  00  00  00  00  00 
+C = 0x08
+-> Trame OK 
+
+ Frame :can0 652 [8] 09  00  00  00  00  00  00  00 
+C = 0x09
+-> Trame OK 
+
+
