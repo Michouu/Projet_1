@@ -66,13 +66,20 @@ main (int argc, char *argv[])
 		break;
 
 	}
+	printf("optarg = %s argc[%d] argv[%s]\n", optarg, argc,argv[1]);
     }
-  if (file == NULL)
+
+    if ((argv[0] != NULL) && (optind < 1)) {
+    	printf("optind = %d argc[%d]\n", optind, argc);
+		print_usage(argv[0]);
+		return 1;
+	}
+ /* if (file == NULL)
     {
       printf ("Type -h for help\n");
 
       return 1;
-    }
+    }*/
 
   printf ("\t file = %s\n\n", file);
   FILE *fichier = NULL;
@@ -155,6 +162,12 @@ main (int argc, char *argv[])
     }
   else
     {
+    	if (argv[0] != NULL)  {
+    	printf("optind = %d argc[%d]\n", optind, argc);
+		print_usage(argv[0]);
+		return 1;
+	}
+
       printf ("Impossible to open the file: %s \n", file);
       return 1;
     }
