@@ -39,9 +39,7 @@ main (int argc, char *argv[])
 	  timestamp = 1;	//whith or whithout Timestamp
 	  break;
 
-	  /*case 'D':
-	     Debug = 1;
-	     break;       */
+
 
 	case 'v':
 	  printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
@@ -142,12 +140,12 @@ main (int argc, char *argv[])
 	      printf (" %02x ", trame.data[i]);
 
 	    }
-	  printf ("\n");
+	  
 
 	  trame.compteur =
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
 	    (trame.data[3] << 24);
-	  printf ("C = 0x%02lx\n", trame.compteur);
+	  //printf ("C = 0x%02lx\n", trame.compteur);
 
 	  comparer (trame.compteur, valeur_attendu);
 

@@ -3,8 +3,11 @@
 #include "versions.h"
 
 
+/*#define DEBUG
 
+#ifdef DEBUG 
 
+#endif*/
 
 /* Déclaration des variables */
 typedef struct
