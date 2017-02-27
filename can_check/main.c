@@ -64,7 +64,7 @@ main (int argc, char *argv[])
 		break;
 
 	}
-	printf("optarg = %s argc[%d] argv[%s]\n", &optarg[0], argc,argv[1]);
+	printf("optarg = %s argc[%d] argv[%s] optind :%d \n", &optarg[0], argc,argv[1],optind);
     }
 
     if ((argv[0] != NULL) && (optind < 1)) {
