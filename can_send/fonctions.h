@@ -11,9 +11,6 @@ typedef struct
 } Tst_trame;
 
   
-
-
-
 int check (char *file);
 void print_usage(char *prg);
 void endianess (unsigned char d,Tst_trame (*tableau));

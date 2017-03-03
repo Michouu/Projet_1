@@ -140,14 +140,14 @@ main (int argc, char *argv[])
 	      printf (" %02x ", trame.data[i]);
 
 	    }
-	  
+	  printf("\n");  
 
 	  trame.compteur =
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
 	    (trame.data[3] << 24);
 	  //printf ("C = 0x%02lx\n", trame.compteur);
 
-	  comparer (trame.compteur, valeur_attendu);
+	 // comparer (trame.compteur, valeur_attendu);
 
 
 	  valeur_attendu++;
