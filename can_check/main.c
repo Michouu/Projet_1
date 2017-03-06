@@ -109,10 +109,10 @@ main (int argc, char *argv[])
 		      trame.Nom_interface, trame.Id, trame.taille);
 	    }
 
-	  else if((!timestamp) && (check (file) == 0))
+	  else if((!timestamp) && (check (file) == 0) || (timestamp) && (check (file) == 1))
 	    {
 	      printf ("File check integrity is not correct \n");
-	      printf ("Check if argument -S present\n");
+	      print_usage(argv[0]);
 	      return 1;
 
 
@@ -153,7 +153,6 @@ main (int argc, char *argv[])
 	 
 	 if (!isotp)
 	 canComp (trame.compteur, valeur_attendu);
-	
 	 else
 	 isotpComp();	
 
@@ -169,7 +168,7 @@ main (int argc, char *argv[])
   else
     {
     	if (argv[0] != NULL)  {
-	fprintf(stderr, "Expected argument after options\n");
+	    fprintf(stderr, "Expected argument after options\n");
       	printf("optind = %d argc[%d]\n", optind, argc);
 		print_usage(argv[0]);
 		return 1;

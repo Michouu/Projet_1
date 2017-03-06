@@ -14,7 +14,7 @@ void print_usage(char *prg)
 	fprintf(stderr, "Options: -f <file name>\n");
 	fprintf(stderr, "         -S with or without timestamp\n");
 	fprintf(stderr, " Example: \n");
-	fprintf(stderr, "./Comp -f file.txt -S\n");
+	fprintf(stderr, "./Comp -f file.txt \n");
 
 
 /*int
