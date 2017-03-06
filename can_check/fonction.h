@@ -22,7 +22,7 @@ typedef struct
 } Tst_trame;
 
 
-void comparer (unsigned long trame_compteur, unsigned long val);
+void canComp (unsigned long trame_compteur, unsigned long val);
 int check (char *file);
 int utility ();
 void print_usage(char *prg);

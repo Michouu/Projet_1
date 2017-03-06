@@ -26,6 +26,8 @@ check (char *file)
 
       flag = 1;
     }
+		
+  
 
   fclose (fichier);
 

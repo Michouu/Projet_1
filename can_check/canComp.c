@@ -9,7 +9,7 @@
 
 
 void
-comparer (unsigned long trame_compteur, unsigned long val)
+canComp (unsigned long trame_compteur, unsigned long val)
 {
 
 

@@ -17,6 +17,7 @@ main (int argc, char *argv[])
   char *file = NULL;
   int timestamp = 0;		//Variable declaration
   int valeur_attendu = 0;	//Variable declaration
+  int isotp = 0; 
   static int version = 0;
   char s_now[256];
   time_t t = time (NULL);
@@ -27,7 +28,7 @@ main (int argc, char *argv[])
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);	//Clock Function
 
 
-  while ((opt = getopt (argc, argv, "f:SD:vh")) != -1)	// parse the commande line
+  while ((opt = getopt (argc, argv, "f:Sivh")) != -1)	// parse the commande line
     {
       switch (opt)
 	{
@@ -38,6 +39,10 @@ main (int argc, char *argv[])
 	case 'S':
 	  timestamp = 1;	//whith or whithout Timestamp
 	  break;
+
+	case 'i' :
+	  isotp = 1;
+	  break;  
 
 
 
@@ -93,7 +98,6 @@ main (int argc, char *argv[])
 
       while (!feof (fichier))	// reading to the end
 	{
-	  int f = check (file);
 	  if ((timestamp == 1) && (check (file) == 0))
 	    {
 	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &trame.sec_tps,
@@ -105,10 +109,10 @@ main (int argc, char *argv[])
 		      trame.Nom_interface, trame.Id, trame.taille);
 	    }
 
-	  else if ((timestamp == 0) && (check (file) == 0))
+	  else if((!timestamp) && (check (file) == 0))
 	    {
 	      printf ("File check integrity is not correct \n");
-	      printf ("Check is timestamp file is correct and argument -S present\n");
+	      printf ("Check if argument -S present\n");
 	      return 1;
 
 
@@ -146,8 +150,12 @@ main (int argc, char *argv[])
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
 	    (trame.data[3] << 24);
 	  //printf ("C = 0x%02lx\n", trame.compteur);
-
-	 // comparer (trame.compteur, valeur_attendu);
+	 
+	 if (!isotp)
+	 canComp (trame.compteur, valeur_attendu);
+	
+	 else
+	 isotpComp();	
 
 
 	  valeur_attendu++;
