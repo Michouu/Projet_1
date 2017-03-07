@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "versions.h"
 
 
@@ -18,11 +19,16 @@ typedef struct
   unsigned char data[8];
   long sec_tps;
   int usec_tps;
-  unsigned long compteur;
+  uint64_t compteur;
 } Tst_trame;
 
+typedef enum
+{
+	WELL , ERREUR_INC = -1
+}Te_Result;
 
-void canComp (unsigned long trame_compteur, unsigned long val);
-int check (char *file);
-int utility ();
+
+int canComp (unsigned long trame_compteur, unsigned long val, char *file);
+int check (char *file, Tst_trame trames);
 void print_usage(char *prg);
+void debug (Tst_trame trames, int i);

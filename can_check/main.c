@@ -2,22 +2,33 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdint.h>
 #include "versions.h"
 #include "fonction.h"
 
 
- //debug(1)
 
-int
-main (int argc, char *argv[])
+void print_usage(char *prg)
 {
+	fprintf(stderr, "\nUsage: %s [options] <CAN interface>\n",prg);
+	fprintf(stderr, "Options: -f <file name>\n");
+	fprintf(stderr, "         -S with or without timestamp\n");
+	fprintf(stderr, " Example: \n");
+	fprintf(stderr, "./Comp -f file.txt \n");
+}
+
+int main (int argc, char *argv[])
+{
+  FILE *fichier = NULL;
   int i = 0, j;
   int compteur = 0;
   int opt;
+  Te_Result result = WELL;
   char *file = NULL;
   int timestamp = 0;		//Variable declaration
   int valeur_attendu = 0;	//Variable declaration
   int isotp = 0; 
+  int debug = 0;
   static int version = 0;
   char s_now[256];
   time_t t = time (NULL);
@@ -28,7 +39,7 @@ main (int argc, char *argv[])
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);	//Clock Function
 
 
-  while ((opt = getopt (argc, argv, "f:Sivh")) != -1)	// parse the commande line
+  while ((opt = getopt (argc, argv, "f:SDivh")) != -1)	// parse the commande line
     {
       switch (opt)
 	{
@@ -40,11 +51,13 @@ main (int argc, char *argv[])
 	  timestamp = 1;	//whith or whithout Timestamp
 	  break;
 
-	case 'i' :
+	case 'i':
 	  isotp = 1;
-	  break;  
+	  break;
 
-
+	case 'D':
+	  debug = 1;
+	  break;
 
 	case 'v':
 	  printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
@@ -59,37 +72,24 @@ main (int argc, char *argv[])
 
 	case '?':
 		print_usage(argv[0]);
-		exit(0);
-		break;
-
-	    default:
-		fprintf(stderr, "Unknown option %c\n", opt);
-		print_usage(argv[0]);
 		exit(1);
-		break;
+	  break;
 
 	}
-	printf("optarg = %s argc[%d] argv[%s]\n", &optarg[0], argc,argv[1]);
-    }
 
-    if ((argv[0] != NULL) && (optind < 1)) {
-    	printf("optind = %d argc[%d]\n", optind, argc);
+	}
+
+  if ((argv[0] != NULL) && (argc < 2))  
+    {
 		print_usage(argv[0]);
 		return 1;
 	}
- /* if (file == NULL)
-    {
-      printf ("Type -h for help\n");
-
-      return 1;
-    }*/
-
-  printf ("\t file = %s\n\n", file);
-  FILE *fichier = NULL;
 
   if (argc > 1)
     {
-      fichier = fopen (file, "r");	// file in option 
+		fichier = fopen (file, "r");	// file in option 
+		printf ("\t file = %s\n\n", file);
+
     }
 
 
@@ -97,90 +97,71 @@ main (int argc, char *argv[])
     {
 
       while (!feof (fichier))	// reading to the end
-	{
-	  if ((timestamp == 1) && (check (file) == 0))
+	  {
+	  if ((timestamp == 1) && (check (file, trame) == 0))
 	    {
 	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &trame.sec_tps,
 		      &trame.usec_tps, trame.Nom_interface,
 		      &trame.Id, &trame.taille);
 
+	      if (debug)
+	      {
 	      printf (" Frame : (%ld.%d) %s %x [%x]",
 		      trame.sec_tps, trame.usec_tps,
 		      trame.Nom_interface, trame.Id, trame.taille);
+	      }
 	    }
 
-	  else if((!timestamp) && (check (file) == 0) || (timestamp) && (check (file) == 1))
+	  else if((!timestamp) && (check (file, trame) == 0) || (timestamp) && (check (file, trame) == 1))
 	    {
 	      printf ("File check integrity is not correct \n");
 	      print_usage(argv[0]);
 	      return 1;
-
-
 	    }
-
 
 	  else
 	    {
 	      fscanf (fichier, " %s  %x  [%hhx]", trame.Nom_interface, &trame.Id, &trame.taille);	// read and allocate in a variable
+	      if (debug)
+	      	printf (" Frame : %s %x [%x]",trame.Nom_interface, trame.Id, trame.taille);
 
 	      if (trame.taille > 8)	// size condition
-		{
-		  printf ("Frame size too big : %hhx \n",
-			  trame.taille);
-
+		  {
+		  printf ("Frame size too big : %hhx \n",trame.taille);
 		  return 1;
-		}
-	      else
-		{
-
-		  printf (" Frame :" "%s %x [%x]",
-			  trame.Nom_interface, trame.Id, trame.taille);
-		}
+		  }
 	    }
 
 	  for (i = 0; i < trame.taille; i++)	//2nd loop for data
 	    {
 	      fscanf (fichier, " %hhx ", &trame.data[i]);	// hhx for 8 bits         read and allocate in a variable
-	      printf (" %02x ", trame.data[i]);
-
+	      if (debug)
+	      	printf (" %02x ", trame.data[i]);
 	    }
-	  printf("\n");  
+	      if (debug)
+	  		printf("\n");
 
-	  trame.compteur =
+	    trame.compteur =
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
-	    (trame.data[3] << 24);
-	  //printf ("C = 0x%02lx\n", trame.compteur);
+	    (trame.data[3] << 24) + ((uint64_t)trame.data[4] << 32) + ((uint64_t)trame.data[5] << 40) + ((uint64_t)trame.data[6] << 48) + ((uint64_t)trame.data[7] << 56);
 	 
 	 if (!isotp)
-	 canComp (trame.compteur, valeur_attendu);
+	 {
+	 	canComp (trame.compteur, valeur_attendu, file);
+	 	valeur_attendu++;
+	 }
+
 	 else
 	 isotpComp();	
 
-
-	  valeur_attendu++;
-
-
-	}
-      printf ("\n");
-
-
+	  }
     }
   else
     {
-    	if (argv[0] != NULL)  {
-	    fprintf(stderr, "Expected argument after options\n");
-      	printf("optind = %d argc[%d]\n", optind, argc);
-		print_usage(argv[0]);
-		return 1;
-	}
-
       printf ("Impossible to open the file: %s \n", file);
-      return 1;
+      return -1;
     }
   fclose (fichier);		// fermeture du fichier
-
-
-
 
   return 0;
 }

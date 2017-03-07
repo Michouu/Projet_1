@@ -10,7 +10,7 @@
 
 
 int
-check (char *file)
+check (char *file, Tst_trame trames)
 {
   int flag = 0;
 
@@ -27,7 +27,10 @@ check (char *file)
       flag = 1;
     }
 		
-  
+  if (trames.data[0] != 0)
+  {
+    flag = 2;
+  }
 
   fclose (fichier);
 
@@ -35,3 +38,12 @@ check (char *file)
 
   return flag;
 }
+
+
+/*int check_firstF (Tst_trame trames)
+{
+  int flag = 0;
+
+
+  
+}*/
