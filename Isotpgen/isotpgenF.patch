@@ -1,0 +1,129 @@
+From 5dffbc33797354de103510e3866010f7d8d39035 Mon Sep 17 00:00:00 2001
+From: Michel Victor <victor.michel@actia.fr>
+Date: Thu, 2 Mar 2017 15:21:49 +0100
+Subject: [PATCH]  Optimisation
+
+---
+ canutils/isotpgen.c | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/canutils/isotpgen.c b/canutils/isotpgen.c
+index b8e2835..3c94ecb 100644
+--- a/canutils/isotpgen.c
++++ b/canutils/isotpgen.c
+@@ -66,9 +66,9 @@
+ 
+ typedef enum 
+ {
+-	FIX,INCREMENT, RANDOM
++	FIXED,INCREMENTED, RANDOM
+ 
+-}Mode;
++}Te_Mode;
+ 
+ 
+ 
+@@ -118,8 +118,8 @@ int main(int argc, char **argv)
+     unsigned char buf[BUFSIZE];
+     int buflen = 0;
+     int datalen = 8;
+-    Mode data = FIX;
+-    Mode dlc = FIX;
++    Te_Mode data_mode = FIXED;
++    Te_Mode dlc_mode = FIXED;
+     uint64_t compteur = 0;
+     int incdlc = 0;
+     int retval = 0;
+@@ -217,19 +217,19 @@ int main(int argc, char **argv)
+ 	    case 'D':
+ 		    if (optarg[0] == 'r')
+ 			{
+-				dlc = RANDOM;
++				dlc_mode = RANDOM;
+ 				datalen = 1;
+ 
+ 			}
+ 		    else if (optarg[0] == 'i')
+ 			{
+-				dlc = INCREMENT;
++				dlc_mode = INCREMENTED;
+ 				datalen = 1;
+ 			}
+ 
+ 		    else 
+ 			{
+-				dlc = FIX; 
++				dlc_mode = FIXED; 
+ 				datalen = strtoul (optarg, (char **) NULL, 10);
+ 			}
+ 
+@@ -242,12 +242,12 @@ int main(int argc, char **argv)
+ 	    case 'T':
+ 		    if (optarg[0] == 'r')
+ 			{
+-				data = RANDOM;
++				data_mode = RANDOM;
+ 
+ 			}
+ 		    else if (optarg[0] == 'i')
+ 			{
+-				data= INCREMENT;
++				data_mode= INCREMENTED;
+ 
+ 			}
+ 
+@@ -356,7 +356,7 @@ int main(int argc, char **argv)
+ 
+     else
+ 		{
+-		if (data== INCREMENT)
++		if (data_mode== INCREMENTED)
+ 		{
+ 			compteur++;
+ 			*(uint64_t *) buf = compteur;
+@@ -367,10 +367,10 @@ int main(int argc, char **argv)
+ 		    for (buflen = 0; buflen < datalen; buflen++)
+ 		    {
+ 
+-				if (data == RANDOM)
+-					buf[buflen] = rand() % 255;
++				if (data_mode == RANDOM)
++					buf[buflen] = (rand() % 0xFF)+1;
+ 
+-				else if (data == FIX)
++				else if (data_mode == FIXED)
+ 					buf[buflen] = ((buflen % 0xFF) + 1) & 0xFF;
+ 		    }
+ 
+@@ -392,7 +392,7 @@ resend:		if (count && (--count == 0))
+ 		}
+ 
+ 		if (retval != datalen)
+-			fprintf(stderr, "wrote only %d from %d byte\n", retval, buflen);
++			fprintf(stderr, "wrote only %d from %d byte\n", retval, datalen);
+ 
+ 		if (polltimeout) {
+ 				/* wait for the write socket (with timeout) */
+@@ -406,16 +406,16 @@ resend:		if (count && (--count == 0))
+ 				if (nanosleep(&ts, NULL))
+ 					return 1;
+ 
+-		if (dlc ==INCREMENT)
++		if (dlc_mode ==INCREMENTED)
+ 		{
+ 		datalen++;
+ 		if (datalen == LENGTH_BYTES_MAX)
+ 			datalen = 1;
+ 		}
+ 
+-		else if (dlc == RANDOM)
++		else if (dlc_mode == RANDOM)
+ 		{
+-		datalen = (rand() % (LENGTH_BYTES_MAX + 1- 1)) + 1;
++		datalen = (rand() % (LENGTH_BYTES_MAX + 1)) + 1;
+ 		}
+ 	}
+ 
+-- 
+1.9.1
+

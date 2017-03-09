@@ -26,11 +26,6 @@ check (char *file, Tst_trame trames)
 
       flag = 1;
     }
-		
-  if (trames.data[0] != 0)
-  {
-    flag = 2;
-  }
 
   fclose (fichier);
 
