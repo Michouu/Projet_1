@@ -23,7 +23,8 @@ int main (int argc, char *argv[])
   int i = 0, j;
   int compteur = 0;
   int opt;
-  Te_Result result = WELL;
+  Te_Result flag_result = WELL;
+  Te_Result result = 0;
   char *file = NULL;
   int timestamp = 0;		//Variable declaration
   int valeur_attendu = 0;	//Variable declaration
@@ -147,12 +148,15 @@ int main (int argc, char *argv[])
 	 
 	 if (!isotp)
 	 {
-	 	canComp (trame.compteur, valeur_attendu, file);
+	 	result = canComp (trame.compteur, valeur_attendu, file);
 	 	valeur_attendu++;
 	 }
 
 	 else
 	 isotpComp();	
+
+	 if (result == ERROR_INC)
+	 	flag_result = -1;
 
 	  }
     }
@@ -162,6 +166,13 @@ int main (int argc, char *argv[])
       return -1;
     }
   fclose (fichier);		// fermeture du fichier
+
+  if (flag_result == WELL)
+  		printf("Return %d\n", WELL);
+
+  else if (flag_result == ERROR_INC)
+  		printf("Return %d\n", ERROR_INC);	
+
 
   return 0;
 }

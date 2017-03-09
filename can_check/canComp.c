@@ -25,7 +25,7 @@ canComp (unsigned long trame_compteur, unsigned long val, char *file)
 
 
     {
-      result = ERREUR_INC ; 
+      result = ERROR_INC ; 
       fprintf (stderr," Error with exit %d in the file %s line %ld \n",result,file, val+1);
       fprintf (stderr,"-> Frame KO  \n");
       fprintf (stderr," Expected value : 0x%02lx\n measured value : 0x%02lx\n\n", val,

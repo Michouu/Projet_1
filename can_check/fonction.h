@@ -24,7 +24,7 @@ typedef struct
 
 typedef enum
 {
-	WELL , ERREUR_INC = -1
+	WELL , ERROR_INC = -1
 }Te_Result;
 
 
