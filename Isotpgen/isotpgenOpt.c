@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     int opt;
     extern int optind, opterr, optopt;
     __u32 force_tx_stmin = 0;
-    unsigned char buf[BUFSIZE];
+    unsigned char buf[BUFSIZE] = 0;
     int buflen = 0;
     int datalen = 8;
     Te_Mode data_mode = FIXED;
