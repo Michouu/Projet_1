@@ -29,9 +29,22 @@ the interface due to CAN_RAW.
 #include <linux/socket.h>
 #include <signal.h>
 
-#include "fonctions.h"
+#include "can_send.h"
 
 #include "versions.h"
+
+
+void print_usage(char *prg)
+{
+	fprintf(stderr, "\nUsage: %s [options] <CAN interface>\n",prg);
+	fprintf(stderr, "Options: -f <file name>\n");
+	fprintf(stderr, "         -t <gap in microsecond>\n");
+	fprintf(stderr, "         -z <portnbr>(change protocol number default:CAN_RAW)\n");
+	fprintf(stderr, "         -S with or without timestamp\n");
+	fprintf(stderr, " Example: \n");
+	fprintf(stderr, "./Generer -i can0 -f file.txt -t 1000\n");
+	fprintf(stderr, "./Generer -i can0 -f timestamps.txt -S -z 7 \n");
+}
 
 
 int
@@ -49,6 +62,7 @@ main (int argc, char *argv[])
   int tps = 0;
   int protocole = CAN_RAW;
   int timestamp = 0;
+  int debug = 0;
   int difference = 0;
   unsigned char c =0;
   extern int optind, opterr, optopt;
@@ -69,7 +83,7 @@ main (int argc, char *argv[])
 
 
 
-  while ((opt = getopt (argc, argv, "i:f:t:z:vSh")) != -1)	//parsing command line 
+  while ((opt = getopt (argc, argv, "i:f:t:z:DvSh")) != -1)	//parsing command line 
     {
       switch (opt)
 	{
@@ -89,6 +103,10 @@ main (int argc, char *argv[])
 	  protocole = atoi (optarg);
 	  break;
 
+	case 'D':
+	  debug = 1;
+	  break;
+
 	case 'S':
 	  timestamp = 1;	//whit or whithout Timestamp
 	  break;
@@ -101,6 +119,9 @@ main (int argc, char *argv[])
 	  break;
 
 	case 'h':  
+		    print_usage(argv[0]);
+		    exit(0);
+		    break;
 
 
 	case '?':
@@ -114,28 +135,10 @@ main (int argc, char *argv[])
 		    exit(1);
 		    break;
 
-	  
-	/*case 'h':
-
-	default:
-	  printf ("\n");
-	  utility();
-	  printf ("\n");
-	  return 1;
-	  break;*/
-
 	}
 	printf("optarg = %s argc[%d] argv[%s]\n", optarg, argc,argv[1]);
     }
 
-  /*if ((interface == NULL) || (file == NULL))
-    {
-      printf ("Wrong usage type -h for help\n");
-
-      return 1;
-    }*/
-
-    
   printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n",
 	  interface, file, tps, protocole);
 
@@ -167,17 +170,8 @@ main (int argc, char *argv[])
       return 1;
     }
 
-
   FILE *fichier = NULL;
-
-  if (argc > 1)
-    {
-      //printf ("%d\n", argc);
-
-      fichier = fopen (file, "r");	
-    }
-
-
+  fichier = fopen (file, "r");
 
   if (fichier != NULL)
     {
@@ -191,11 +185,13 @@ main (int argc, char *argv[])
 		      var_trames.Nom_interface, &var_trames.Id,
 		      &var_trames.taille);
 
-	      
+	      	if (debug)
+	      	{
 	      	 printf (" frame : (%ld.%d) %s %x [%x]",
 		      var_trames.sec_tps, var_trames.usec_tps,
 		      var_trames.Nom_interface, var_trames.Id,
 		      var_trames.taille);
+	      	}
 	      
 	     
 
@@ -226,10 +222,12 @@ main (int argc, char *argv[])
 	      else
 		{
 
-	 
+	 	  if (debug)
+	 	  {
 		  printf (" frame :" "%s %x [%x]",
 			  var_trames.Nom_interface, var_trames.Id,
 			  var_trames.taille);
+		  }
 		}
 	    }
 
@@ -237,7 +235,9 @@ main (int argc, char *argv[])
 	    {
 	    	 
 	      fscanf (fichier, " %hhx ", &var_trames.data[i]);	
-	      printf (" %02x ", var_trames.data[i]);	
+	      if(debug)
+	      printf (" %02x ", var_trames.data[i]);
+
 
 	    }
 	  printf ("\n");

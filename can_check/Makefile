@@ -5,14 +5,14 @@
 
 CC?=gcc
 EXEC=canCheck
-SOURCE= $(wildcard *.c) fonction.h versions.h
+SOURCE= $(wildcard *.c) can_check.h versions.h
 CFLAGS = -W 
 
 
 
 all: $(SOURCE)
 	@echo "Compilation : "
-	$(CC) $(SOURCE)  -o $(EXEC) $(CFLAGS) -DDATE -DDEBUG
+	$(CC) $(SOURCE)  -o $(EXEC) $(CFLAGS) 
 
 	@file $(EXEC)
 

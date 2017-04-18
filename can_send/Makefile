@@ -9,7 +9,7 @@
 
 CC?=gcc
 EXEC=canSend
-SOURCE= $(wildcard *.c) fonctions.h versions.h
+SOURCE= $(wildcard *.c) can_send.h versions.h
 CFLAGS = -W 
 
 

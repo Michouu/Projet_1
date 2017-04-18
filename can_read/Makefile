@@ -5,7 +5,7 @@
 
 CC?=gcc
 EXEC=canRead
-SOURCE= $(wildcard *.c) fonction.h versions.h
+SOURCE= $(wildcard *.c) can_read.h versions.h
 CFLAGS = -W 
 
 
