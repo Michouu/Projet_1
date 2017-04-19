@@ -16,7 +16,7 @@ CFLAGS = -W
 
 all: $(SOURCE)
 	@echo "Compilation : "
-	$(CC) $(SOURCE)  -o $(EXEC) $(CFLAGS) -DDATE 
+	$(CC) $(SOURCE)  -o $(EXEC) $(CFLAGS) 
 
 	@file $(EXEC)
 

@@ -26,12 +26,14 @@ the interface due to CAN_RAW.
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <linux/socket.h>
 #include <signal.h>
 
 #include "can_send.h"
-
 #include "versions.h"
+
+#define TAILLE 256
 
 
 void print_usage(char *prg)
@@ -41,17 +43,20 @@ void print_usage(char *prg)
 	fprintf(stderr, "         -t <gap in microsecond>\n");
 	fprintf(stderr, "         -z <portnbr>(change protocol number default:CAN_RAW)\n");
 	fprintf(stderr, "         -S with or without timestamp\n");
+	fprintf(stderr, "         -D Debug Option\n");
 	fprintf(stderr, " Example: \n");
-	fprintf(stderr, "./Generer -i can0 -f file.txt -t 1000\n");
-	fprintf(stderr, "./Generer -i can0 -f timestamps.txt -S -z 7 \n");
+	fprintf(stderr, "./canSend -i can0 -f file.txt -t 1000\n");
+	fprintf(stderr, "./canSend -i can0 -f timestamps.txt -S -z 7 \n");
 }
 
 
-int
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
+	int diff=0;
+	int diff1=0;
   Tst_trame var_trames;
-
+  Tst_trame var_trames_1;
+  FILE *fichier = NULL;
   /*Variable declaration */
   int i, j, l;
   int sock; //socket
@@ -65,12 +70,13 @@ main (int argc, char *argv[])
   int debug = 0;
   int difference = 0;
   unsigned char c =0;
+  char line[TAILLE] = "";
+
   extern int optind, opterr, optopt;
 
 
-
-
   /*Structure declaration */
+  struct timeval tv;
   struct sockaddr_can addr;
   struct can_frame frame;	//frame struct
   struct ifreq ifr;
@@ -78,6 +84,7 @@ main (int argc, char *argv[])
 
 
   time_t t = time (NULL);
+  struct tm *tm;
   struct tm tm_now = *localtime (&t);
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);
 
@@ -136,10 +143,17 @@ main (int argc, char *argv[])
 		    break;
 
 	}
-	printf("optarg = %s argc[%d] argv[%s]\n", optarg, argc,argv[1]);
+	//printf("optarg = %s argc[%d] argv[%s]\n", optarg, argc,argv[1]);
     }
 
-  printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n",
+    if ((argv[0] != NULL) && (argc < 2))  
+    {
+		print_usage(argv[0]);
+		printf("HELLO\n");
+		return 1;
+	}
+
+    printf ("\t N_interf = %s, file = %s, time = %d, protocol = %d\n",
 	  interface, file, tps, protocole);
 
   /*Socket creation */
@@ -170,20 +184,38 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  FILE *fichier = NULL;
+  
   fichier = fopen (file, "r");
+
+  fgets(line, TAILLE, fichier);
+  rewind (fichier);
 
   if (fichier != NULL)
     {
+    	int counter=0;
 
       while (!feof (fichier))	// reading until the end 
 	{
-	  if ((timestamp == 1) && (check (file) == 0))
+
+	  if ((timestamp) && (!(check (line))))
 	    {
 	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]",
 		      &var_trames.sec_tps, &var_trames.usec_tps,
 		      var_trames.Nom_interface, &var_trames.Id,
 		      &var_trames.taille);
+
+	      var_trames.usec_tps = tv.tv_usec;
+	      var_trames.sec_tps = tv.tv_sec; 
+
+	     counter++;
+
+	     if (counter>1){
+	     	diff=abs(var_trames_1.sec_tps-var_trames.sec_tps);
+	     	diff1=abs(var_trames_1.usec_tps-var_trames.usec_tps);
+	     	printf("DIFF=%d\n", diff );
+	     	printf("DIFF=%d\n", diff1 );
+	     }
+	     var_trames_1=var_trames;
 
 	      	if (debug)
 	      	{
@@ -192,23 +224,18 @@ main (int argc, char *argv[])
 		      var_trames.Nom_interface, var_trames.Id,
 		      var_trames.taille);
 	      	}
-	      
-	     
 
 	    }
 
-	   else if ((timestamp == 0) && (check (file) == 0))
+	   else if ((timestamp) && (check (line)) || (!timestamp) && (!(check (line))))
 	    {
 	      printf ("File check integrity is not correct \n");
-	      
-		  printf ("Check is timestamp file is correct and argument -S present\n");
+		  print_usage(argv[0]);
 	      return 1;
-
-
 	    }
 
 	  else
-	    {
+	   {
 	      /*read and allocate into a variable */
 	      fscanf (fichier, " %s  %x [%hhx]", var_trames.Nom_interface,
 		      &var_trames.Id, &var_trames.taille);
@@ -216,7 +243,8 @@ main (int argc, char *argv[])
 	      /*size condition */
 	      if (var_trames.taille > 8)
 		{
-		  return 1; 
+		   printf ("Frame size too big : %hhx \n",var_trames.taille);
+		   return 1;
 		}
 
 	      else
@@ -229,7 +257,7 @@ main (int argc, char *argv[])
 			  var_trames.taille);
 		  }
 		}
-	    }
+	   }
 
 	  for (i = 0; i < var_trames.taille; i++)	
 	    {
@@ -238,9 +266,9 @@ main (int argc, char *argv[])
 	      if(debug)
 	      printf (" %02x ", var_trames.data[i]);
 
-
 	    }
-	  printf ("\n");
+	     if(debug)
+	     printf ("\n");
 
 	  /* Allow 29 bits ID */
 	  frame.can_id = var_trames.Id;
@@ -256,21 +284,12 @@ main (int argc, char *argv[])
 	  /*printf (" Frame.id = %02x , Frame.taille = [%x] ",
 	     frame.can_id  , frame.can_dlc); */
 
-	  
-	  //endianess (var_trames.data[8], c);
-
-
-
-	
-
 	 for (l = 0; l < var_trames.taille; l++)
 
 	    {
-
-	      frame.data[l]  = var_trames.data[l];	/*filling of frame*/
+		  frame.data[l]  = var_trames.data[l];	/*filling of frame*/
 	      //printf ("Frame [%d] : %02x ", l, frame.data[l]);
 	    }
-
 
 	  /* Socket writting  */
 	  nbytes = write (sock, &frame, sizeof (frame));
@@ -288,28 +307,34 @@ main (int argc, char *argv[])
 		}
 
 	    }
-	  sleep (tps);		// waiting between every frame
-	  printf ("\n\n");
+
+	    if (timestamp)
+	    	usleep(diff1);
+	    else
+	    	usleep (tps);	
+	  	
+	    if(debug)
+	    	printf ("\n\n");
 
 	}
-
 
       close (sock);
 
     }
   else
     {
-    	if (argv[0] != NULL)  {
-    	printf("optind = %d argc[%d]\n", optind, argc);
-		print_usage(argv[0]);
-		return 1;
-	}
 
       printf ("Cannot open the file %s \n", file);
       return 1;
 
     }
-  fclose (fichier);		
+  fclose (fichier);	
+
+  if (ferror(fichier) == 0)
+  	printf("CAN_SEND_OK\n");	
+
+  else 
+  	printf("CAN_SEND_KO\n");
 
   return 0;
 }

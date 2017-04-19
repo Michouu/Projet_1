@@ -29,6 +29,6 @@ typedef enum
 
 
 int canComp (unsigned long trame_compteur, unsigned long val, char *file);
-int check (char *chaine);
+int check (char *line);
 void print_usage(char *prg);
 void debug (Tst_trame trames, int i);

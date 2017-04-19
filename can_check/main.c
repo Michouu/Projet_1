@@ -34,7 +34,7 @@ int main (int argc, char *argv[])
   int debug = 0;
   static int version = 0;
   char s_now[256];
-  char chaine[TAILLE] = "";
+  char line[TAILLE] = "";
   time_t t = time (NULL);
 
   struct tm tm_now = *localtime (&t);
@@ -101,7 +101,7 @@ printf ("argc = %d\n", argc);
 		fichier = fopen (file, "r");	// file in option 
 		printf ("\t file = %s\n\n", file);
 
-		fgets(chaine, TAILLE, fichier);
+		fgets(line, TAILLE, fichier);
 		rewind(fichier);	
 
   if (fichier != NULL)
@@ -110,7 +110,7 @@ printf ("argc = %d\n", argc);
 
       while (!feof (fichier))	// reading to the end
 	  {
-	  if ((timestamp == 1) && (check (chaine) == 0))
+	  if ((timestamp) && (!(check (line))))
 	    {
 
 	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &trame.sec_tps,
@@ -126,7 +126,7 @@ printf ("argc = %d\n", argc);
 	      }
 	    }
 
-	  else if((!timestamp) && (check (chaine) == 0) || (timestamp) && (check (chaine) == 1))
+	  else if ((timestamp) && (check (line)) || (!timestamp) && (!(check (line))))
 	    {
 	      printf ("File check integrity is not correct \n");
 	      print_usage(argv[0]);

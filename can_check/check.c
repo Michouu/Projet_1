@@ -10,12 +10,12 @@
 
 
 int
-check (char *chaine)
+check (char *line)
 {
   int flag = 0;
 
 
-  if ((strchr (chaine, '(') == NULL) || ((strchr (chaine, ')') == NULL)))
+  if ((strchr (line, '(') == NULL) || ((strchr (line, ')') == NULL)))
     {
 
       flag = 1;

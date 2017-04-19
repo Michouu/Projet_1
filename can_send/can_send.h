@@ -11,10 +11,11 @@ typedef struct
 } Tst_trame;
 
   
-int check (char *file);
+int check (char *line);
 void print_usage(char *prg);
 void endianess (unsigned char d,Tst_trame (*tableau));
 void utility ();
+
 
 
 
