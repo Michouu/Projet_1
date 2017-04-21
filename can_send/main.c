@@ -77,6 +77,7 @@ int main (int argc, char *argv[])
 
   /*Structure declaration */
   struct timeval tv;
+  struct timeval tv_1;
   struct sockaddr_can addr;
   struct can_frame frame;	//frame struct
   struct ifreq ifr;
@@ -84,7 +85,7 @@ int main (int argc, char *argv[])
 
 
   time_t t = time (NULL);
-  struct tm *tm;
+  struct tm tm;
   struct tm tm_now = *localtime (&t);
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);
 
@@ -204,18 +205,24 @@ int main (int argc, char *argv[])
 		      var_trames.Nom_interface, &var_trames.Id,
 		      &var_trames.taille);
 
-	      var_trames.usec_tps = tv.tv_usec;
-	      var_trames.sec_tps = tv.tv_sec; 
+	      tv.tv_usec = var_trames.usec_tps;
+	      /*tv.tv_sec = var_trames.sec_tps ; 
+	      printf("usec = %d\n", tv.tv_usec);
+	       printf("sec = %ld\n", tv.tv_sec);*/
 
 	     counter++;
 
-	     if (counter>1){
-	     	diff=abs(var_trames_1.sec_tps-var_trames.sec_tps);
-	     	diff1=abs(var_trames_1.usec_tps-var_trames.usec_tps);
-	     	printf("DIFF=%d\n", diff );
+	     if (counter>1)
+	     {
+	     	//diff=abs(var_trames_1.sec_tps-var_trames.sec_tps);
+	     	diff1=abs(tv_1.tv_usec- tv.tv_usec);
+	     	//printf("DIFF=%d\n", diff );
 	     	printf("DIFF=%d\n", diff1 );
 	     }
-	     var_trames_1=var_trames;
+
+	     tv_1.tv_usec = var_trames.usec_tps;
+	     tv_1.tv_sec = var_trames.sec_tps; 
+
 
 	      	if (debug)
 	      	{

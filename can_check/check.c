@@ -24,3 +24,19 @@ check (char *line)
 
   return flag;
 }
+
+/*int ra(Tst_trame trame)
+{
+	int compt = 0;
+	int flag = 0;
+
+	  if (trame.data[0] == 0x00)
+	    	compt ++;
+
+	    if (compt >= 1)
+	    	flag = 1;
+
+
+return flag;				
+}
+*/

@@ -23,10 +23,11 @@ int main (int argc, char *argv[])
 {
   FILE *fichier = NULL;
   int i = 0, j;
-  int compteur = 0;
+  int compt = 0;
   int opt;
-  Te_Result flag_result = CAN_CHECK_OK;
-  Te_Result result = 0;
+   int flag = 0;
+  Te_Result flag_result = 0;
+  Te_Result result =0;
   char *file = NULL;
   int timestamp = 0;		//Variable declaration
   int valeur_attendu = 0;	//Variable declaration
@@ -107,7 +108,6 @@ printf ("argc = %d\n", argc);
   if (fichier != NULL)
     {
     	
-
       while (!feof (fichier))	// reading to the end
 	  {
 	  if ((timestamp) && (!(check (line))))
@@ -141,6 +141,7 @@ printf ("argc = %d\n", argc);
 
 	      if (trame.taille > 8)	// size condition
 		  {
+		  printf("\n");
 		  printf ("Frame size too big : %hhx \n",trame.taille);
 		  return 1;
 		  }
@@ -153,21 +154,29 @@ printf ("argc = %d\n", argc);
 	      	printf (" %02x ", trame.data[i]);
 	    }
 
-	   
+	    if (trame.data[0] == 0x00)
+	    	compt ++;
+
 	      if (debug)
 	  		printf("\n");
+
 
 	    trame.compteur =
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
 	    (trame.data[3] << 24) + ((uint64_t)trame.data[4] << 32) + ((uint64_t)trame.data[5] << 40) + ((uint64_t)trame.data[6] << 48) + ((uint64_t)trame.data[7] << 56);
-	 
-	 if (!isotp)
+	
+	 if ((!isotp) && (compt))
 	 {
-	 	result = canComp (trame.compteur, valeur_attendu, file);
+
+	 	result = canComp (trame, valeur_attendu, file);
 	 	valeur_attendu++;
 	 }
 
 	 else
+	 	flag_result = CAN_CHECK_ERROR_RANDOM;
+
+
+	 if (isotp)
 	 isotpComp();	
 
 	 if (result == CAN_CHECK_KO)
@@ -182,12 +191,14 @@ printf ("argc = %d\n", argc);
     }
   fclose (fichier);		// fermeture du fichier
 
-  if (flag_result == CAN_CHECK_OK)
+  if ((flag_result == CAN_CHECK_OK) && (ferror(fichier) == 0))
   		printf("CAN_CHECK_OK\n");
 
   else if (flag_result == CAN_CHECK_KO)
   		printf("CAN_CHECK_KO\n");	
 
+  else 
+        printf("CAN_CHECK_ERROR_RANDOM\n");	
 
   return 0;
 }

@@ -24,11 +24,11 @@ typedef struct
 
 typedef enum
 {
-	CAN_CHECK_OK , CAN_CHECK_KO 
+	CAN_CHECK_OK , CAN_CHECK_KO , CAN_CHECK_ERROR_RANDOM
 }Te_Result;
 
 
-int canComp (unsigned long trame_compteur, unsigned long val, char *file);
+int canComp (Tst_trame trame, unsigned long val, char *file);
 int check (char *line);
 void print_usage(char *prg);
-void debug (Tst_trame trames, int i);
+
