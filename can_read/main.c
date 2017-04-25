@@ -13,10 +13,19 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <sys/types.h>
-#include "fonction.h"
+#include "can_read.h"
 #include "versions.h"
 
 
+void print_usage(char *prg)
+{
+  fprintf(stderr, "\nUsage: %s [options] <CAN interface>\n",prg);
+  fprintf(stderr, "Options: -i <interface name>\n");
+  fprintf(stderr, "         -w < way > path where the user want to create the file\n");
+  fprintf(stderr, "         -z <portnbr> (change protocol number default:CAN_RAW)\n");
+  fprintf(stderr, " Example: \n");
+  fprintf(stderr, "./canRead -i can0 -w /home/documents/file.txt\n");
+}
 
 
 int main (int argc, char *argv[])
@@ -24,6 +33,7 @@ int main (int argc, char *argv[])
 
 /*Variable declaration*/
   int s;
+  int i;
   int nbytes, opt;
   char *interface = NULL;
   char *chemin = NULL;
@@ -39,19 +49,15 @@ int main (int argc, char *argv[])
   struct can_frame frame;
   struct ifreq ifr;
   struct timeval tv, last_tv;
+  Te_Erreur erreur = 0;
 
 
   time_t t = time (NULL);
   struct tm tm_now = *localtime (&t);
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);
 
-
-  /*last_tv.tv_usec = 0;
-     last_tv.tv_sec = 0; */
-  //printf("usec = %010ld",last_tv.tv_usec);
-
   /*Execution option */
-  while ((opt = getopt (argc, argv, "i:w:t:z:hv")) != -1)
+  while ((opt = getopt (argc, argv, "i:w:z:hv")) != -1)
     {
       switch (opt)
 	{
@@ -67,16 +73,6 @@ int main (int argc, char *argv[])
     protocole = atoi (optarg);
     break;  
 
-	  /*case 't':
-	     timestamp = optarg[0];
-	     if ((timestamp != 'a') && (timestamp != 'A') &&
-	     (timestamp != 'd') && (timestamp != 'z'))
-	     {
-	     fprintf (stderr, "%s: unknown timestamp mode '%c' - ignored\n",
-	     basename (argv[0]), optarg[0]);
-	     timestamp = 0;
-	     }
-	     break; */
   case 'v':
      printf (" \t Version %d.%d.%d \n", MAJOR_V, MINOR_V, BUILD_V);
      printf (" \t Ce fichier a ete compilé le %s a %s \n", __DATE__, __TIME__);
@@ -88,12 +84,10 @@ int main (int argc, char *argv[])
     
 
 	default:
-	  printf ("\n");
-	  utility ();
-	  printf ("\n");
-	  return 1;
-	  break;
-
+	      fprintf(stderr, "Unknown option %c\n", opt);
+        print_usage(argv[0]);
+        exit(1);
+        break;
 	}
 
     }
@@ -105,31 +99,6 @@ int main (int argc, char *argv[])
       return 1 ; 
 
     }
-
-  /*switch (timestamp)
-     {
-
-     case 'a':           //absolute with timestamp 
-     printf ("(%010ld.%06ld) ", last_tv.tv_sec, last_tv.tv_usec);
-     break;
-
-     case 'A':           //absolute with date 
-     {
-     struct tm tm;
-     char timestring[25];
-
-     tm = *localtime (&tv.tv_usec);
-     strftime (timestring, 24, "%Y-%m-%d %H:%M:%S", &tm);
-     printf ("(%s.%06lu) ", timestring, last_tv.tv_usec);
-     }
-     break;
-
-     default:
-     break;
-
-     } */
-
-
 
   /* Create the socket */
   if ((s = socket (PF_CAN, SOCK_RAW, protocole)) < 0)
@@ -143,13 +112,11 @@ int main (int argc, char *argv[])
   if (ioctl (s, SIOCGIFINDEX, &ifr) < 0)
     {
       perror ("SIOCGIFINDEX");
-      return 1;
+      return CAN_READ_ERROR_INTERFACE;
     }
 
   addr.can_family = AF_CAN;
   addr.can_ifindex = ifr.ifr_ifindex;
-
-
 
   printf ("Read a CAN frame from interface %s \n", ifr.ifr_name);
 
@@ -160,16 +127,17 @@ int main (int argc, char *argv[])
       return 1;
     }
 
+    FILE *fichier = NULL;
+    fichier = fopen (chemin, "a+");
 
-  int i;
+
   while (1)
     {
       /*Read frame send from socket */
       nbytes = read (s, &frame, sizeof (frame));
       if (nbytes > 0)
 	{
-	  FILE *fichier = NULL;
-	  fichier = fopen (chemin, "a+");
+	  
 
 	  if (chemin != NULL && fichier != NULL)	// writting into a file
 	    {
@@ -189,23 +157,11 @@ int main (int argc, char *argv[])
 
 	  else
 	    {
-
-
 	      printf (" %s  %x  [%d] ", ifr.ifr_name, frame.can_id,
 		      frame.can_dlc);
 
-        /*c =  frame.data[0];
-        frame.data[0] = frame.data[3];
-        frame.data[3] = c;
-
-        c =  frame.data[1];
-        frame.data[1] = frame.data[2];
-        frame.data[2] = c;*/
-
-
 	      for (i = 0; i < frame.can_dlc; i++)
 		{
-
 		  printf (" %02x ", frame.data[i]);	
 		}
 	      printf ("\n");
@@ -213,17 +169,15 @@ int main (int argc, char *argv[])
 
 	}
 
-
       else
 	{
 	  error ("Error reading from socket");
-	  return 1;
+	  return CAN_READ_KO;
 	}
-
 
       usleep (1);
     }
 
   close (s);
-  return 0;
+  return CAN_READ_OK;
 }

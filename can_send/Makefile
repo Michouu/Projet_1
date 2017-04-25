@@ -9,14 +9,14 @@
 
 CC?=gcc
 EXEC=canSend
-SOURCE= $(wildcard *.c) fonctions.h versions.h
+SOURCE= $(wildcard *.c) can_send.h versions.h
 CFLAGS = -W 
 
 
 
 all: $(SOURCE)
 	@echo "Compilation : "
-	$(CC) $(SOURCE)  -o $(EXEC) $(CFLAGS) -DDATE 
+	$(CC) $(SOURCE)  -o $(EXEC) $(CFLAGS) 
 
 	@file $(EXEC)
 

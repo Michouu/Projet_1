@@ -5,21 +5,15 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-#include "fonction.h"
+#include "can_check.h"
 
 
 
 int
-check (char *file, Tst_trame trames)
+check (char *line)
 {
   int flag = 0;
 
-
-  FILE *fichier;
-  fichier = fopen (file, "r");
-
-  char line[100] = "";
-  fgets (line, 100, fichier);
 
   if ((strchr (line, '(') == NULL) || ((strchr (line, ')') == NULL)))
     {
@@ -27,18 +21,22 @@ check (char *file, Tst_trame trames)
       flag = 1;
     }
 
-  fclose (fichier);
-
-
 
   return flag;
 }
 
-
-/*int check_firstF (Tst_trame trames)
+/*int ra(Tst_trame trame)
 {
-  int flag = 0;
+	int compt = 0;
+	int flag = 0;
+
+	  if (trame.data[0] == 0x00)
+	    	compt ++;
+
+	    if (compt >= 1)
+	    	flag = 1;
 
 
-  
-}*/
+return flag;				
+}
+*/
