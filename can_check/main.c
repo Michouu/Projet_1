@@ -49,7 +49,7 @@ int main (int argc, char *argv[])
       switch (opt)
 	{
 	case 'f':
-	  file = optarg;
+	file = optarg;
 	  break;
 
 	case 'S':

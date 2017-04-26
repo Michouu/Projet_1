@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "versions.h"
+//#include "versions.h"
 
 
 /*#define DEBUG
@@ -16,7 +16,7 @@ typedef struct
   char Nom_interface[5];
   int Id;
   unsigned char taille;
-  unsigned char data[4095];
+  unsigned char data[8];
   long sec_tps;
   int usec_tps;
   uint64_t compteur;
