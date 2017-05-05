@@ -1,3 +1,8 @@
+/*****************************************************
+Nom ........ : main.c
+Role ....... : Compare the frames between them 
+*****************************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -10,49 +15,68 @@
 
 void print_usage(char *prg)
 {
-	fprintf(stderr, "\nUsage: %s [options] <CAN interface>\n",prg);
+	fprintf(stderr, "\nUsage: %s [options]\n",prg);
 	fprintf(stderr, "Options: -f <file name>\n");
-	fprintf(stderr, "         -S with or without timestamp\n");
+	fprintf(stderr, "         -T with or without timestamp\n");
 	fprintf(stderr, "         -i isotp frame\n");
 	fprintf(stderr, "         -D Debug option\n");
+	fprintf(stderr, "         -s source can_id\n");
+	fprintf(stderr, "         -d destination can_id\n");
 	fprintf(stderr, " Example: \n");
 	fprintf(stderr, "./Comp -f file.txt \n");
 }
 
 int main (int argc, char *argv[])
 {
+ 
   FILE *fichier = NULL;
+  Tst_trame trame;
+
   int i = 0, j;
   int compt = 0;
+
   int opt;
-   int flag = 0;
+
+  // Isotp Declaration
+  int cpt = 0;
+  int s_can_id = 0;
+  int d_can_id = 0;
+  int iterator = 0;
+  Te_isotp flag_Isotp;
+  Te_isotp_norme state = WAIT_S_OR_F_frame; 
+  
   Te_Result flag_result = 0;
   Te_Result result =0;
+
+  
+  // argument declaration
   char *file = NULL;
-  int timestamp = 0;		//Variable declaration
-  int valeur_attendu = 0;	//Variable declaration
+  int timestamp = 0;
+  int incrementing_data = 0;
   int isotp = 0; 
   int debug = 0;
   static int version = 0;
-  char s_now[256];
-  char line[TAILLE] = "";
-  time_t t = time (NULL);
 
+  // check timestamp
+  char line[TAILLE] = "";
+
+  char s_now[256];
+  time_t t = time (NULL);
   struct tm tm_now = *localtime (&t);
-  Tst_trame trame;
+
 
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);	//Clock Function
 
 
-  while ((opt = getopt (argc, argv, "f:SDivh")) != -1)	// parse the commande line
+  while ((opt = getopt (argc, argv, "f:s:d:SDivh")) != -1)	// parse the commande line
     {
       switch (opt)
 	{
 	case 'f':
-	file = optarg;
+	  file = optarg;
 	  break;
 
-	case 'S':
+	case 'T':
 	  timestamp = 1;	//whith or whithout Timestamp
 	  break;
 
@@ -62,6 +86,14 @@ int main (int argc, char *argv[])
 
 	case 'D':
 	  debug = 1;
+	  break;
+
+	case 's':
+	  s_can_id = strtoul(optarg, (char **)NULL, 16);;
+	  break;
+
+	case 'd':
+	  d_can_id = strtoul(optarg, (char **)NULL, 16);;
 	  break;
 
 	case 'v':
@@ -86,18 +118,16 @@ int main (int argc, char *argv[])
 		    exit(1);
 		    break;
 
-	}
-printf ("argc = %d\n", argc);
-	}
+	} // end of switch
+
+	} //end of parsing argument
 	
 
   if ((argv[0] != NULL) && (argc < 2))  
     {
 		print_usage(argv[0]);
-		printf("HELLO\n");
 		return 1;
 	}
-
 
 		fichier = fopen (file, "r");	// file in option 
 		printf ("\t file = %s\n\n", file);
@@ -160,24 +190,54 @@ printf ("argc = %d\n", argc);
 	      if (debug)
 	  		printf("\n");
 
+	  	 
 
+	    if (isotp)
+	    {
+	    	if ((s_can_id == trame.Id) || (d_can_id == trame.Id))
+            {
+		     cpt++;
+            }
+
+         else
+	     printf ("No ISOTP frame \n");
+
+	    	if (cpt == 1)
+			trame = isotpComp(trame,&state);
+
+			for(iterator = 0; iterator < 10; iterator ++)
+			{
+				printf (" DD[%d] : %02x ",iterator, trame.data[iterator]);
+			}
+			printf("\n");
+
+	     }
+
+	    cpt = 0;
+
+	    
 	    trame.compteur =
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
 	    (trame.data[3] << 24) + ((uint64_t)trame.data[4] << 32) + ((uint64_t)trame.data[5] << 40) + ((uint64_t)trame.data[6] << 48) + ((uint64_t)trame.data[7] << 56);
 	
+	 if(isotp)
+	 {
+
+	 	canComp (trame, incrementing_data, file);
+	 	incrementing_data++;
+	 }
+
+
 	 if ((!isotp) && (compt))
 	 {
 
-	 	result = canComp (trame, valeur_attendu, file);
-	 	valeur_attendu++;
+	 	result = canComp (trame, incrementing_data, file);
+	 	incrementing_data++;
 	 }
 
 	 else
 	 	flag_result = CAN_CHECK_ERROR_RANDOM;
 
-
-	 if (isotp)
-	 isotpComp();	
 
 	 if (result == CAN_CHECK_KO)
 	 	flag_result = result;
