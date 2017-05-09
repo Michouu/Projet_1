@@ -10,6 +10,7 @@ Role ....... : Compare the frames between them
 #include <stdint.h>
 #include "versions.h"
 #include "can_check.h"
+
 #define TAILLE 256
 
 
@@ -23,7 +24,7 @@ void print_usage(char *prg)
 	fprintf(stderr, "         -s source can_id\n");
 	fprintf(stderr, "         -d destination can_id\n");
 	fprintf(stderr, " Example: \n");
-	fprintf(stderr, "./Comp -f file.txt \n");
+	fprintf(stderr, "./canCheck -f file.txt \n");
 }
 
 int main (int argc, char *argv[])
@@ -32,7 +33,7 @@ int main (int argc, char *argv[])
   FILE *fichier = NULL;
   Tst_trame trame;
 
-  int i = 0, j;
+  int i = 0;
   int compt = 0;
 
   int opt;
@@ -45,14 +46,13 @@ int main (int argc, char *argv[])
   Te_isotp flag_Isotp;
   Te_isotp_norme state = WAIT_S_OR_F_frame; 
   
-  Te_Result flag_result = 0;
   Te_Result result =0;
 
   
   // argument declaration
   char *file = NULL;
   int timestamp = 0;
-  int incrementing_data = 0;
+  int data_counter = 0;
   int isotp = 0; 
   int debug = 0;
   static int version = 0;
@@ -63,12 +63,10 @@ int main (int argc, char *argv[])
   char s_now[256];
   time_t t = time (NULL);
   struct tm tm_now = *localtime (&t);
-
-
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);	//Clock Function
 
 
-  while ((opt = getopt (argc, argv, "f:s:d:SDivh")) != -1)	// parse the commande line
+  while ((opt = getopt (argc, argv, "f:s:d:TDivh")) != -1)	// parse the commande line
     {
       switch (opt)
 	{
@@ -94,6 +92,7 @@ int main (int argc, char *argv[])
 
 	case 'd':
 	  d_can_id = strtoul(optarg, (char **)NULL, 16);;
+
 	  break;
 
 	case 'v':
@@ -103,20 +102,20 @@ int main (int argc, char *argv[])
 	  break;
 
 	case 'h':
-		print_usage(argv[0]);
-		exit(0);
-		break;
+	  print_usage(argv[0]);
+	  exit(0);
+	  break;
 
 	case '?':
-		    print_usage(argv[0]);
-		    exit(0);
-		    break;	
+	  print_usage(argv[0]);
+	  exit(0);
+	  break;	
 
-	  default:
-		    fprintf(stderr, "Unknown option %c\n", opt);
-		    print_usage(argv[0]);
-		    exit(1);
-		    break;
+	default:
+	  fprintf(stderr, "Unknown option %c\n", opt);
+	  print_usage(argv[0]);
+	  exit(1);
+	  break;
 
 	} // end of switch
 
@@ -144,15 +143,15 @@ int main (int argc, char *argv[])
 	    {
 
 	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &trame.sec_tps,
-		      &trame.usec_tps, trame.Nom_interface,
-		      &trame.Id, &trame.taille);
+		      &trame.usec_tps, trame.interface_name,
+		      &trame.Id, &trame.length_data);
 	      
 
 	      if (debug)
 	      {
 	      printf (" Frame : (%ld.%d) %s %x [%x]",
 		      trame.sec_tps, trame.usec_tps,
-		      trame.Nom_interface, trame.Id, trame.taille);
+		      trame.interface_name, trame.Id, trame.length_data);
 	      }
 	    }
 
@@ -165,85 +164,65 @@ int main (int argc, char *argv[])
 
 	  else
 	    {
-	      fscanf (fichier, " %s  %x  [%hhx]", trame.Nom_interface, &trame.Id, &trame.taille);	// read and allocate in a variable
-	      if (debug)
-	      	printf (" Frame : %s %x [%x]",trame.Nom_interface, trame.Id, trame.taille);
+	      fscanf (fichier, " %s  %x  [%hhx]", trame.interface_name, &trame.Id, &trame.length_data);	// read and allocate in a variable
 
-	      if (trame.taille > 8)	// size condition
+	      if (debug)
+	      	printf (" Frame : %s %x [%x]",trame.interface_name, trame.Id, trame.length_data);
+
+	      if (trame.length_data > 8)	// size condition
 		  {
-		  printf("\n");
-		  printf ("Frame size too big : %hhx \n",trame.taille);
+		  printf ("Frame size too big : %hhx \n",trame.length_data);
 		  return 1;
 		  }
 	    }
 
-	  for (i = 0; i < trame.taille; i++)	//2nd loop for data
+	  for (i = 0; i < trame.length_data; i++)	//2nd loop for data
 	    {
 	      fscanf (fichier, " %hhx ", &trame.data[i]);	// hhx for 8 bits         read and allocate in a variable
+
 	      if (debug)
 	      	printf (" %02x ", trame.data[i]);
 	    }
 
-	    if (trame.data[0] == 0x00)
-	    	compt ++;
 
 	      if (debug)
 	  		printf("\n");
 
-	  	 
 
 	    if (isotp)
 	    {
-	    	if ((s_can_id == trame.Id) || (d_can_id == trame.Id))
+			if ((s_can_id == trame.Id) || (d_can_id == trame.Id))
             {
 		     cpt++;
             }
 
-         else
-	     printf ("No ISOTP frame \n");
+			else
+			printf ("Not ISOTP frame \n");
 
-	    	if (cpt == 1)
+			if (cpt == 1)
 			trame = isotpComp(trame,&state);
-
-			for(iterator = 0; iterator < 10; iterator ++)
+			/*for(iterator = 0; iterator < 10; iterator ++)
 			{
 				printf (" DD[%d] : %02x ",iterator, trame.data[iterator]);
 			}
-			printf("\n");
+			printf("\n");*/
 
 	     }
 
 	    cpt = 0;
 
-	    
-	    trame.compteur =
+	    trame.counter =
 	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
 	    (trame.data[3] << 24) + ((uint64_t)trame.data[4] << 32) + ((uint64_t)trame.data[5] << 40) + ((uint64_t)trame.data[6] << 48) + ((uint64_t)trame.data[7] << 56);
-	
-	 if(isotp)
-	 {
 
-	 	canComp (trame, incrementing_data, file);
-	 	incrementing_data++;
-	 }
+	    // Call check fonction // 
+	 	result = canComp (trame, data_counter, file);
+	 	data_counter++;
 
+	  } //end while
 
-	 if ((!isotp) && (compt))
-	 {
+    }//end file
 
-	 	result = canComp (trame, incrementing_data, file);
-	 	incrementing_data++;
-	 }
-
-	 else
-	 	flag_result = CAN_CHECK_ERROR_RANDOM;
-
-
-	 if (result == CAN_CHECK_KO)
-	 	flag_result = result;
-
-	  }
-    }
   else
     {
       printf ("Impossible to open the file: %s \n", file);
@@ -251,11 +230,9 @@ int main (int argc, char *argv[])
     }
   fclose (fichier);		// fermeture du fichier
 
-  if ((flag_result == CAN_CHECK_OK) && (ferror(fichier) == 0))
-  		printf("CAN_CHECK_OK\n");
 
-  else if (flag_result == CAN_CHECK_KO)
-  		printf("CAN_CHECK_KO\n");	
+  if ((result == CAN_CHECK_OK) && (ferror(fichier) == 0))
+  		printf("CAN_CHECK_OK\n");
 
   else 
         printf("CAN_CHECK_ERROR_RANDOM\n");	

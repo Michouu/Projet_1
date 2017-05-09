@@ -24,67 +24,59 @@ Tst_trame isotpComp (Tst_trame trame, Te_isotp_norme *state)
  
 
 
-	switch(*state)
-	  		{
-	  		case WAIT_S_OR_F_frame: 
+switch(*state)
+	{
+	case WAIT_S_OR_F_frame: 
 
-	  				if ((trame.data[0] != 0) && (trame.data[0] <= 0x07))
-	  				{
-	  					memcpy(&DataBuffer.data[0], &trame.data[1], sizeof((trame.taille)-1));
-	  				}
+		if ((trame.data[0] != 0) && (trame.data[0] <= 0x07))
+		{
+		memcpy(&DataBuffer.data[0], &trame.data[1], sizeof((trame.length_data)-1));
+		}
 
-	  				else if((trame.data[0] == 0x10) && (trame.taille == 8))
-	  				{
-	  					flag_Isotp = FIRST_FRAME_OK;
-	  					memcpy(&DataBuffer.data[0], &trame.data[2], 6);
-	  					
-	  					L_CF= (((trame.data[1])-0x06));
-	  					printf("%d\n",L_CF);
-	  	    			//receive_t_2(DataBuffer);
-	  	    			*state = WAIT_FC;
-	  	    			
-	  				}
-	  				else
-	  				{
-	  					printf("DEBUGGGG\n");
-	  					flag_Isotp = FIRST_FRAME_KO;
-	  					exit(FIRST_FRAME_KO);
-	  				} 
-	  				
-	  		break;
+		else if(trame.data[0] == 0x10) 
+		{
+			flag_Isotp = FIRST_FRAME_OK;
+			memcpy(&DataBuffer.data[0], &trame.data[2], 6);
+			L_CF = (((trame.data[1])-0x06));
+			*state = WAIT_FC;
+		}
 
-	  		case WAIT_FC: //floW control
+		else
+		{
+			printf("DEBUGGGG\n");
+			flag_Isotp = FIRST_FRAME_KO;
+			exit(FIRST_FRAME_KO);
+		} 
 
-	  				if ((trame.data[0] == 0x30) && (trame.taille == 3))
-	  				{
-	  					flag_Isotp = FLOW_CONTROL_OK;
-	  					printf("OKKK\n");
-	  					
-	  				}
-	  				else 
-	  				{
-	  					flag_Isotp = FLOW_CONTROL_KO;
-	  					exit (FLOW_CONTROL_KO);
-	  				}
-	  				*state = WAIT_CF;
-	  		break;
+	break;
 
-	  		case WAIT_CF: //Consecutive frame
+	case WAIT_FC: //floW control
 
-	  				printf("HEYYYYYYYY\n");
-	  				*state = WAIT_S_OR_F_frame;
-			break;
+		if ((trame.data[0] == 0x30) && (trame.length_data == 3))
+		{
+			flag_Isotp = FLOW_CONTROL_OK;
+			printf("OKKK\n");
+		}
+		else 
+		{
+			flag_Isotp = FLOW_CONTROL_KO;
+			exit (FLOW_CONTROL_KO);
+		}
+		*state = WAIT_CF;
+	break;
 
-	  		default:
+	case WAIT_CF: //Consecutive frame
 
-	  			  printf("DEFAULT\n");
-	  		break;
+		printf("HEYYYYYYYY\n");
+		*state = WAIT_S_OR_F_frame;
+		break;
 
-	  			  
+	default:
 
+		printf("DEFAULT\n");
+	break;
 
-
-	  		}//fin du switch
+	}//fin du switch
 
 
 

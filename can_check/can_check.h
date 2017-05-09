@@ -15,24 +15,24 @@
 /* Déclaration des variables */
 typedef struct
 {
-  char Nom_interface[5];
+  char interface_name[5];
   int Id;
-  unsigned char taille;
+  unsigned char length_data;
   unsigned char data[4095];
   long sec_tps;
   int usec_tps;
-  uint64_t compteur;
+  uint64_t counter;
 } Tst_trame;
 
 typedef enum
 {
-	CAN_CHECK_OK , CAN_CHECK_KO , CAN_CHECK_ERROR_RANDOM
+	CAN_CHECK_OK , CAN_CHECK_KO 
 }Te_Result;
 
 typedef enum 
 {
-	FIRST_FRAME_OK, FIRST_FRAME_KO, 
-	FLOW_CONTROL_OK,FLOW_CONTROL_KO, 
+	FIRST_FRAME_OK , FIRST_FRAME_KO,
+	FLOW_CONTROL_OK,FLOW_CONTROL_KO , 
 	CONSECUTIVE_FRAME_OK, CONSECUTIVE_FRAME_KO
 }Te_isotp;
 
