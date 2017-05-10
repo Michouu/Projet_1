@@ -7,6 +7,7 @@ Role ....... : Compare the frames between them
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
 #include <stdint.h>
 #include "versions.h"
 #include "can_check.h"
@@ -35,6 +36,8 @@ int main (int argc, char *argv[])
 
   int i = 0;
   int compt = 0;
+  int nbr = 1;
+  int flag = 0;
 
   int opt;
 
@@ -200,12 +203,17 @@ int main (int argc, char *argv[])
 			printf ("Not ISOTP frame \n");
 
 			if (cpt == 1)
-			trame = isotpComp(trame,&state);
-			/*for(iterator = 0; iterator < 10; iterator ++)
+			trame = isotpComp(trame,&state, &flag);
+		
+			if(flag)
 			{
-				printf (" DD[%d] : %02x ",iterator, trame.data[iterator]);
+				for(iterator = 0; iterator < 16; iterator ++)
+				{
+				printf ("%02x ", trame.data[iterator]);
+				}
+				printf("\n");
+				
 			}
-			printf("\n");*/
 
 	     }
 
@@ -216,7 +224,7 @@ int main (int argc, char *argv[])
 	    (trame.data[3] << 24) + ((uint64_t)trame.data[4] << 32) + ((uint64_t)trame.data[5] << 40) + ((uint64_t)trame.data[6] << 48) + ((uint64_t)trame.data[7] << 56);
 
 	    // Call check fonction // 
-	 	result = canComp (trame, data_counter, file);
+	 	//result = canComp (trame, data_counter, file);
 	 	data_counter++;
 
 	  } //end while

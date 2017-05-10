@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
 #include "versions.h"
 
 
@@ -44,6 +45,6 @@ typedef enum
 
 int canComp (Tst_trame trame, unsigned long val, char *file);
 int check (char *line);
-Tst_trame isotpComp (Tst_trame trame, Te_isotp_norme *state);
+Tst_trame isotpComp (Tst_trame trame, Te_isotp_norme *state, int *flag);
 void print_usage(char *prg);
 
