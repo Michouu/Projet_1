@@ -9,7 +9,7 @@
 
 
 int
-canComp (Tst_trame trame, unsigned long val, char *file)
+canComp (Tst_trame_CAN trame, unsigned long val, char *file)
 {
   int result = 0;
   int compt = 0;

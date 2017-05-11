@@ -19,11 +19,25 @@ typedef struct
   char interface_name[5];
   int Id;
   unsigned char length_data;
-  unsigned char data[4095];
+  unsigned char data[8];
   long sec_tps;
   int usec_tps;
   uint64_t counter;
-} Tst_trame;
+} Tst_trame_CAN;
+
+typedef enum 
+{
+	WAIT_S_OR_F_frame, WAIT_FC, WAIT_CF
+}Te_isotp_norme;
+
+typedef struct 
+{
+	unsigned char extracting_data[4095];
+	Te_isotp_norme state ;
+	int index;
+	short length_consecutive_frame;
+
+}Tst_trame_ISOTP;
 
 typedef enum
 {
@@ -37,14 +51,11 @@ typedef enum
 	CONSECUTIVE_FRAME_OK, CONSECUTIVE_FRAME_KO
 }Te_isotp;
 
-typedef enum 
-{
-	WAIT_S_OR_F_frame, WAIT_FC, WAIT_CF
-}Te_isotp_norme;
 
 
-int canComp (Tst_trame trame, unsigned long val, char *file);
+
+int canComp (Tst_trame_CAN trame, unsigned long val, char *file);
 int check (char *line);
-Tst_trame isotpComp (Tst_trame trame, Te_isotp_norme *state, int *flag);
+int isotpComp (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag);
 void print_usage(char *prg);
 

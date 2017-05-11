@@ -32,22 +32,26 @@ int main (int argc, char *argv[])
 {
  
   FILE *fichier = NULL;
-  Tst_trame trame;
+
+  Tst_trame_CAN st_CAN_frame;
+  Tst_trame_ISOTP st_ISOTP_frame;
+  Te_isotp Isotp_flag =0;
+
+  st_ISOTP_frame.index = 0;
+  st_ISOTP_frame.state = WAIT_S_OR_F_frame;
+  st_ISOTP_frame.length_consecutive_frame = 0;
 
   int i = 0;
-  int compt = 0;
-  int nbr = 1;
   int flag = 0;
 
   int opt;
 
   // Isotp Declaration
-  int cpt = 0;
+  int control_ID = 0;
   int s_can_id = 0;
   int d_can_id = 0;
   int iterator = 0;
   Te_isotp flag_Isotp;
-  Te_isotp_norme state = WAIT_S_OR_F_frame; 
   
   Te_Result result =0;
 
@@ -145,16 +149,16 @@ int main (int argc, char *argv[])
 	  if ((timestamp) && (!(check (line))))
 	    {
 
-	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &trame.sec_tps,
-		      &trame.usec_tps, trame.interface_name,
-		      &trame.Id, &trame.length_data);
+	      fscanf (fichier, " (%ld.%d) %s  %x  [%hhx]", &st_CAN_frame.sec_tps,
+		      &st_CAN_frame.usec_tps, st_CAN_frame.interface_name,
+		      &st_CAN_frame.Id, &st_CAN_frame.length_data);
 	      
 
 	      if (debug)
 	      {
 	      printf (" Frame : (%ld.%d) %s %x [%x]",
-		      trame.sec_tps, trame.usec_tps,
-		      trame.interface_name, trame.Id, trame.length_data);
+		      st_CAN_frame.sec_tps, st_CAN_frame.usec_tps,
+		      st_CAN_frame.interface_name, st_CAN_frame.Id, st_CAN_frame.length_data);
 	      }
 	    }
 
@@ -167,24 +171,24 @@ int main (int argc, char *argv[])
 
 	  else
 	    {
-	      fscanf (fichier, " %s  %x  [%hhx]", trame.interface_name, &trame.Id, &trame.length_data);	// read and allocate in a variable
+	      fscanf (fichier, " %s  %x  [%hhx]", st_CAN_frame.interface_name, &st_CAN_frame.Id, &st_CAN_frame.length_data);	// read and allocate in a variable
 
 	      if (debug)
-	      	printf (" Frame : %s %x [%x]",trame.interface_name, trame.Id, trame.length_data);
+	      	printf (" Frame : %s %x [%x]",st_CAN_frame.interface_name, st_CAN_frame.Id, st_CAN_frame.length_data);
 
-	      if (trame.length_data > 8)	// size condition
+	      if (st_CAN_frame.length_data > 8)	// size condition
 		  {
-		  printf ("Frame size too big : %hhx \n",trame.length_data);
+		  printf ("Frame size too big : %hhx \n",st_CAN_frame.length_data);
 		  return 1;
 		  }
 	    }
 
-	  for (i = 0; i < trame.length_data; i++)	//2nd loop for data
+	  for (i = 0; i < st_CAN_frame.length_data; i++)	//2nd loop for data
 	    {
-	      fscanf (fichier, " %hhx ", &trame.data[i]);	// hhx for 8 bits         read and allocate in a variable
+	      fscanf (fichier, " %hhx ", &st_CAN_frame.data[i]);	// hhx for 8 bits         read and allocate in a variable
 
 	      if (debug)
-	      	printf (" %02x ", trame.data[i]);
+	      	printf (" %02x ", st_CAN_frame.data[i]);
 	    }
 
 
@@ -194,22 +198,22 @@ int main (int argc, char *argv[])
 
 	    if (isotp)
 	    {
-			if ((s_can_id == trame.Id) || (d_can_id == trame.Id))
+			if ((s_can_id == st_CAN_frame.Id) || (d_can_id == st_CAN_frame.Id))
             {
-		     cpt++;
+		     control_ID++;
             }
 
 			else
 			printf ("Not ISOTP frame \n");
 
-			if (cpt == 1)
-			trame = isotpComp(trame,&state, &flag);
+			if (control_ID == 1)
+			Isotp_flag = isotpComp(&st_CAN_frame, &st_ISOTP_frame, &flag);
 		
 			if(flag)
 			{
 				for(iterator = 0; iterator < 16; iterator ++)
 				{
-				printf ("%02x ", trame.data[iterator]);
+				printf ("%02x ", st_ISOTP_frame.extracting_data[iterator]);
 				}
 				printf("\n");
 				
@@ -217,11 +221,11 @@ int main (int argc, char *argv[])
 
 	     }
 
-	    cpt = 0;
+	    control_ID = 0;
 
-	    trame.counter =
-	    trame.data[0] + (trame.data[1] << 8) + (trame.data[2] << 16) +
-	    (trame.data[3] << 24) + ((uint64_t)trame.data[4] << 32) + ((uint64_t)trame.data[5] << 40) + ((uint64_t)trame.data[6] << 48) + ((uint64_t)trame.data[7] << 56);
+	    st_CAN_frame.counter =
+	    st_CAN_frame.data[0] + (st_CAN_frame.data[1] << 8) + (st_CAN_frame.data[2] << 16) +
+	    (st_CAN_frame.data[3] << 24) + ((uint64_t)st_CAN_frame.data[4] << 32) + ((uint64_t)st_CAN_frame.data[5] << 40) + ((uint64_t)st_CAN_frame.data[6] << 48) + ((uint64_t)st_CAN_frame.data[7] << 56);
 
 	    // Call check fonction // 
 	 	//result = canComp (trame, data_counter, file);
@@ -230,6 +234,8 @@ int main (int argc, char *argv[])
 	  } //end while
 
     }//end file
+
+
 
   else
     {

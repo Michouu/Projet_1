@@ -9,48 +9,44 @@
 #include "can_check.h"
 
 
-Tst_trame isotpComp (Tst_trame trame, Te_isotp_norme *state, int *flag)
+int isotpComp (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag)
 {
 
-  Tst_trame DataBuffer;
   Te_isotp flag_Isotp;
 
 
-  double value = 0;
-  static double L_CF = 0;
-  double result = 0;
-  int iterator = 0;
+   int value_byte_remaining = 0;
 
-  int i = 0;
-  int opt;
-  int cpt = 0;
-  
- 
-  static int index = 0;
-  DataBuffer.length_data = trame.length_data ;
 
-switch(*state)
+switch(ISOTP_frame->state)
 	{
 	case WAIT_S_OR_F_frame: 
 
-		if ((trame.data[0] != 0) && (trame.data[0] <= 0x07))
+		if ((CAN_frame->data[0] != 0) && (CAN_frame->data[0] <= 0x07))
 		{
-		memcpy(&DataBuffer.data[0], &trame.data[1], sizeof((trame.length_data)-1));
+		memcpy(&ISOTP_frame->extracting_data[0], &CAN_frame->data[1], sizeof((CAN_frame->length_data)-1));
 		*flag = 1;
 		}
 
-		else if(trame.data[0] == 0x10) 
+		else if(CAN_frame->data[0] == 0x10) 
 		{
 			flag_Isotp = FIRST_FRAME_OK;
 
-			memcpy(&DataBuffer.data[0], &trame.data[2], 6);
+			memcpy(&ISOTP_frame->extracting_data[0], &CAN_frame->data[2], 6);
 			*flag = 0;
-			index += 6;
+			ISOTP_frame->index += 6;
 
-			value = ((trame.data[1])-0x06)/7.0;
-			L_CF = ceil(value);
+			value_byte_remaining = ((CAN_frame->data[1])-0x06)%7;
+			ISOTP_frame->length_consecutive_frame = ((CAN_frame->data[1])-0x06)/7;
 
-			*state = WAIT_FC;
+			//value_byte_remaining = (!0) ? ISOTP_frame->length_consecutive_frame +=1 :ISOTP_frame->length_consecutive_frame ;
+
+			if (value_byte_remaining !=0)
+			{
+				ISOTP_frame->length_consecutive_frame +=1;
+			}
+
+			ISOTP_frame->state = WAIT_FC;
 		}
 		else
 		{
@@ -62,11 +58,11 @@ switch(*state)
 
 	case WAIT_FC: //floW control
 
-		if ((trame.data[0] == 0x30) && (trame.length_data == 3))
+		if ((CAN_frame->data[0] == 0x30) && (CAN_frame->length_data == 3))
 		{
 			flag_Isotp = FLOW_CONTROL_OK;
 			*flag = 0;
-			*state = WAIT_CF;
+			ISOTP_frame->state = WAIT_CF;
 			printf("FC__OKKK\n");
 		}
 		else 
@@ -79,19 +75,20 @@ switch(*state)
 
 	case WAIT_CF: //Consecutive frame
 
-		if(L_CF >= 1)
+		//printf("ISOTP_frame->length_consecutive_frame : %d\n",ISOTP_frame->length_consecutive_frame);
+
+		if(ISOTP_frame->length_consecutive_frame >= 1)
 		{
-			memcpy(&DataBuffer.data[index], &trame.data[1], (trame.length_data)-1);
+			memcpy(&ISOTP_frame->extracting_data[ISOTP_frame->index], &CAN_frame->data[1], (CAN_frame->length_data)-1);
 			*flag = 1;
-			index += (trame.length_data)-1;
-			//memcpy(&DataBuffer.data[(6*nbr)+toto], &trame.data[1], (trame.length_data)-1);
-			L_CF --;
+			ISOTP_frame->index += (CAN_frame->length_data)-1;
+			ISOTP_frame->length_consecutive_frame --;
 
 
-			if(L_CF == 0)
+			if(ISOTP_frame->length_consecutive_frame == 0)
 			{
-				*state = WAIT_S_OR_F_frame;
-				index = 0;
+				ISOTP_frame->state = WAIT_S_OR_F_frame;
+				ISOTP_frame->index = 0;
 			}
 		}
 
@@ -105,7 +102,7 @@ switch(*state)
 	}//fin du switch
 
 
-  return DataBuffer;
+  return flag_Isotp;
 		/* code */
 	
 }
