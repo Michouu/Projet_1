@@ -7,9 +7,10 @@
 #include <math.h>
 #include <time.h>
 #include "can_check.h"
+#define BYTES_MAX 4095
 
 
-int isotpComp (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag)
+int IsotpMode (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag)
 {
 
   Te_isotp flag_Isotp;
@@ -39,13 +40,7 @@ switch(ISOTP_frame->state)
 			value_byte_remaining = ((CAN_frame->data[1])-0x06)%7;
 			ISOTP_frame->length_consecutive_frame = ((CAN_frame->data[1])-0x06)/7;
 
-			//value_byte_remaining = (!0) ? ISOTP_frame->length_consecutive_frame +=1 :ISOTP_frame->length_consecutive_frame ;
-
-			if (value_byte_remaining !=0)
-			{
-				ISOTP_frame->length_consecutive_frame +=1;
-			}
-
+			ISOTP_frame->length_consecutive_frame += (value_byte_remaining !=0) ? 1 : 0;
 			ISOTP_frame->state = WAIT_FC;
 		}
 		else
@@ -63,7 +58,6 @@ switch(ISOTP_frame->state)
 			flag_Isotp = FLOW_CONTROL_OK;
 			*flag = 0;
 			ISOTP_frame->state = WAIT_CF;
-			printf("FC__OKKK\n");
 		}
 		else 
 		{
@@ -81,15 +75,9 @@ switch(ISOTP_frame->state)
 		{
 			memcpy(&ISOTP_frame->extracting_data[ISOTP_frame->index], &CAN_frame->data[1], (CAN_frame->length_data)-1);
 			*flag = 1;
+
 			ISOTP_frame->index += (CAN_frame->length_data)-1;
 			ISOTP_frame->length_consecutive_frame --;
-
-
-			if(ISOTP_frame->length_consecutive_frame == 0)
-			{
-				ISOTP_frame->state = WAIT_S_OR_F_frame;
-				ISOTP_frame->index = 0;
-			}
 		}
 
 	break;
@@ -103,6 +91,5 @@ switch(ISOTP_frame->state)
 
 
   return flag_Isotp;
-		/* code */
-	
+
 }

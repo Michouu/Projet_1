@@ -36,6 +36,7 @@ typedef struct
 	Te_isotp_norme state ;
 	int index;
 	short length_consecutive_frame;
+	uint64_t counter;
 
 }Tst_trame_ISOTP;
 
@@ -55,7 +56,8 @@ typedef enum
 
 
 int canComp (Tst_trame_CAN trame, unsigned long val, char *file);
+void IsotpComp (Tst_trame_ISOTP frame, unsigned long val, char *file);
 int check (char *line);
-int isotpComp (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag);
+int IsotpMode (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag);
 void print_usage(char *prg);
 

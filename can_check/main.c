@@ -13,6 +13,8 @@ Role ....... : Compare the frames between them
 #include "can_check.h"
 
 #define TAILLE 256
+#define BYTES_MAX 4095
+
 
 
 void print_usage(char *prg)
@@ -59,7 +61,8 @@ int main (int argc, char *argv[])
   // argument declaration
   char *file = NULL;
   int timestamp = 0;
-  int data_counter = 0;
+  int CAN_data_counter = 0;
+  int Isotp_data_counter = 0;
   int isotp = 0; 
   int debug = 0;
   static int version = 0;
@@ -190,14 +193,12 @@ int main (int argc, char *argv[])
 	      if (debug)
 	      	printf (" %02x ", st_CAN_frame.data[i]);
 	    }
-
-
 	      if (debug)
 	  		printf("\n");
 
 
-	    if (isotp)
-	    {
+	  if (isotp)
+	  {
 			if ((s_can_id == st_CAN_frame.Id) || (d_can_id == st_CAN_frame.Id))
             {
 		     control_ID++;
@@ -206,30 +207,50 @@ int main (int argc, char *argv[])
 			else
 			printf ("Not ISOTP frame \n");
 
-			if (control_ID == 1)
-			Isotp_flag = isotpComp(&st_CAN_frame, &st_ISOTP_frame, &flag);
+		  if (control_ID == 1)
+			Isotp_flag = IsotpMode(&st_CAN_frame, &st_ISOTP_frame, &flag);
 		
-			if(flag)
-			{
-				for(iterator = 0; iterator < 16; iterator ++)
+		  if(flag)
+		  {
+				for(iterator = 0; iterator < 15; iterator ++)
 				{
 				printf ("%02x ", st_ISOTP_frame.extracting_data[iterator]);
 				}
 				printf("\n");
 				
-			}
+		  }
 
-	     }
+		  if (st_ISOTP_frame.length_consecutive_frame == 0)
+		  {
+			st_ISOTP_frame.state = WAIT_S_OR_F_frame;
+			st_ISOTP_frame.index = 0;
+		  }
+			
+	   }
 
 	    control_ID = 0;
 
+	    if((isotp) && (st_ISOTP_frame.index == 0))
+	    {
+	    st_ISOTP_frame.counter =
+	    st_ISOTP_frame.extracting_data[0] + (st_ISOTP_frame.extracting_data[1] << 8) + (st_ISOTP_frame.extracting_data[2] << 16) +
+	    (st_ISOTP_frame.extracting_data[3] << 24) + ((uint64_t)st_ISOTP_frame.extracting_data[4] << 32) + ((uint64_t)st_ISOTP_frame.extracting_data[5] << 40) + ((uint64_t)st_ISOTP_frame.extracting_data[6] << 48) + ((uint64_t)st_ISOTP_frame.extracting_data[7] << 56);
+		
+		 IsotpComp (st_ISOTP_frame.counter, Isotp_data_counter, file);
+		 Isotp_data_counter++;
+	    }
+
+	 	else if(isotp == 0)
+	 	{
 	    st_CAN_frame.counter =
 	    st_CAN_frame.data[0] + (st_CAN_frame.data[1] << 8) + (st_CAN_frame.data[2] << 16) +
 	    (st_CAN_frame.data[3] << 24) + ((uint64_t)st_CAN_frame.data[4] << 32) + ((uint64_t)st_CAN_frame.data[5] << 40) + ((uint64_t)st_CAN_frame.data[6] << 48) + ((uint64_t)st_CAN_frame.data[7] << 56);
+	 		
+	 	canComp (st_CAN_frame, CAN_data_counter, file);
+	 	CAN_data_counter++;
+	 	}
 
-	    // Call check fonction // 
-	 	//result = canComp (trame, data_counter, file);
-	 	data_counter++;
+	 	
 
 	  } //end while
 
