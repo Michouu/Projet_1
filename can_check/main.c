@@ -7,7 +7,6 @@ Role ....... : Compare the frames between them
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
-#include <math.h>
 #include <stdint.h>
 #include "versions.h"
 #include "can_check.h"
@@ -45,6 +44,7 @@ int main (int argc, char *argv[])
 
   int i = 0;
   int flag = 0;
+  uint64_t counter = 0;
 
   int opt;
 
@@ -210,7 +210,7 @@ int main (int argc, char *argv[])
 		  if (control_ID == 1)
 			Isotp_flag = IsotpMode(&st_CAN_frame, &st_ISOTP_frame, &flag);
 		
-		  if(flag)
+		  if((flag) && (debug))
 		  {
 				for(iterator = 0; iterator < 15; iterator ++)
 				{
@@ -226,30 +226,31 @@ int main (int argc, char *argv[])
 			st_ISOTP_frame.index = 0;
 		  }
 			
-	   }
+	  }
 
 	    control_ID = 0;
 
 	    if((isotp) && (st_ISOTP_frame.index == 0))
 	    {
-	    st_ISOTP_frame.counter =
+	    counter =
 	    st_ISOTP_frame.extracting_data[0] + (st_ISOTP_frame.extracting_data[1] << 8) + (st_ISOTP_frame.extracting_data[2] << 16) +
 	    (st_ISOTP_frame.extracting_data[3] << 24) + ((uint64_t)st_ISOTP_frame.extracting_data[4] << 32) + ((uint64_t)st_ISOTP_frame.extracting_data[5] << 40) + ((uint64_t)st_ISOTP_frame.extracting_data[6] << 48) + ((uint64_t)st_ISOTP_frame.extracting_data[7] << 56);
 		
-		 IsotpComp (st_ISOTP_frame.counter, Isotp_data_counter, file);
+		 IsotpComp (counter, Isotp_data_counter, file);
 		 Isotp_data_counter++;
 	    }
 
 	 	else if(isotp == 0)
 	 	{
-	    st_CAN_frame.counter =
+	    counter =
 	    st_CAN_frame.data[0] + (st_CAN_frame.data[1] << 8) + (st_CAN_frame.data[2] << 16) +
 	    (st_CAN_frame.data[3] << 24) + ((uint64_t)st_CAN_frame.data[4] << 32) + ((uint64_t)st_CAN_frame.data[5] << 40) + ((uint64_t)st_CAN_frame.data[6] << 48) + ((uint64_t)st_CAN_frame.data[7] << 56);
 	 		
-	 	canComp (st_CAN_frame, CAN_data_counter, file);
+	 	canComp (counter, CAN_data_counter, file);
 	 	CAN_data_counter++;
 	 	}
 
+	 	
 	 	
 
 	  } //end while
@@ -264,7 +265,6 @@ int main (int argc, char *argv[])
       return 1;
     }
   fclose (fichier);		// fermeture du fichier
-
 
   if ((result == CAN_CHECK_OK) && (ferror(fichier) == 0))
   		printf("CAN_CHECK_OK\n");

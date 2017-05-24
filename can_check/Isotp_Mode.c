@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <math.h>
 #include <time.h>
 #include "can_check.h"
 #define BYTES_MAX 4095
@@ -17,6 +16,7 @@ int IsotpMode (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag
 
 
    int value_byte_remaining = 0;
+   static short Consecutive_F_counter = 21;
 
 
 switch(ISOTP_frame->state)
@@ -69,15 +69,17 @@ switch(ISOTP_frame->state)
 
 	case WAIT_CF: //Consecutive frame
 
-		//printf("ISOTP_frame->length_consecutive_frame : %d\n",ISOTP_frame->length_consecutive_frame);
-
 		if(ISOTP_frame->length_consecutive_frame >= 1)
 		{
+			
+			printf("CF : %d\n", ISOTP_frame->length_consecutive_frame);
 			memcpy(&ISOTP_frame->extracting_data[ISOTP_frame->index], &CAN_frame->data[1], (CAN_frame->length_data)-1);
 			*flag = 1;
-
 			ISOTP_frame->index += (CAN_frame->length_data)-1;
 			ISOTP_frame->length_consecutive_frame --;
+			
+			Consecutive_F_counter ++;
+
 		}
 
 	break;

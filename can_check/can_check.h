@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <math.h>
 #include "versions.h"
 
 
@@ -22,7 +21,6 @@ typedef struct
   unsigned char data[8];
   long sec_tps;
   int usec_tps;
-  uint64_t counter;
 } Tst_trame_CAN;
 
 typedef enum 
@@ -36,8 +34,7 @@ typedef struct
 	Te_isotp_norme state ;
 	int index;
 	short length_consecutive_frame;
-	uint64_t counter;
-
+	
 }Tst_trame_ISOTP;
 
 typedef enum
@@ -55,8 +52,8 @@ typedef enum
 
 
 
-int canComp (Tst_trame_CAN trame, unsigned long val, char *file);
-void IsotpComp (Tst_trame_ISOTP frame, unsigned long val, char *file);
+int canComp (uint64_t counter, unsigned long val, char *file);
+void IsotpComp (uint64_t counter, unsigned long val, char *file);
 int check (char *line);
 int IsotpMode (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag);
 void print_usage(char *prg);
