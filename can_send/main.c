@@ -160,10 +160,10 @@ int main (int argc, char *argv[])
   /*Socket creation */
   if ((sock = socket (PF_CAN, SOCK_RAW, protocole)) < 0) //protocole = CAN RAW  
     {
-      perror ("socket");
+      perror ("Error while opening socket");
       return 1;
     }
-
+  addr.can_ifindex = ifr.ifr_ifindex;
   addr.can_family = AF_CAN;
   /* disable default receive filter on this RAW socket */
 
@@ -176,7 +176,7 @@ int main (int argc, char *argv[])
       return 1;
     }
 
-  addr.can_ifindex = ifr.ifr_ifindex;
+
 
   /*link to a communicate point */
   if (bind (sock, (struct sockaddr *) &addr, sizeof (addr)) < 0)

@@ -52,7 +52,7 @@ typedef enum
 
 
 
-int canComp (uint64_t counter, unsigned long val, char *file);
+int canComp (  uint64_t counter, unsigned long val, char *file, int id, int incId);
 void IsotpComp (uint64_t counter, unsigned long val, char *file);
 int check (char *line);
 int IsotpMode (Tst_trame_CAN *CAN_frame, Tst_trame_ISOTP *ISOTP_frame, int *flag);

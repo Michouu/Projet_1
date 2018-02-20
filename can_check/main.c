@@ -25,6 +25,7 @@ void print_usage(char *prg)
 	fprintf(stderr, "         -D Debug option\n");
 	fprintf(stderr, "         -s source can_id\n");
 	fprintf(stderr, "         -d destination can_id\n");
+	fprintf(stderr, ".........-I Incrementation ID"); 
 	fprintf(stderr, " Example: \n");
 	fprintf(stderr, "./canCheck -f file.txt \n");
 }
@@ -43,7 +44,7 @@ int main (int argc, char *argv[])
   st_ISOTP_frame.length_consecutive_frame = 0;
 
   int i = 0;
-  int flag = 0;
+  int flag_Display = 0;
   uint64_t counter = 0;
 
   int opt;
@@ -53,7 +54,6 @@ int main (int argc, char *argv[])
   int s_can_id = 0;
   int d_can_id = 0;
   int iterator = 0;
-  Te_isotp flag_Isotp;
   
   Te_Result result =0;
 
@@ -64,7 +64,10 @@ int main (int argc, char *argv[])
   int CAN_data_counter = 0;
   int Isotp_data_counter = 0;
   int isotp = 0; 
+  int incrementationId = 0;
+  int check_data_counter = 0;
   int debug = 0;
+  int display_Data = 0; 
   static int version = 0;
 
   // check timestamp
@@ -76,7 +79,7 @@ int main (int argc, char *argv[])
   strftime (s_now, sizeof s_now, " %d/%m/%Y a %H:%M:%S ", &tm_now);	//Clock Function
 
 
-  while ((opt = getopt (argc, argv, "f:s:d:TDivh")) != -1)	// parse the commande line
+  while ((opt = getopt (argc, argv, "f:s:d:TDivhI")) != -1)	// parse the commande line
     {
       switch (opt)
 	{
@@ -101,8 +104,11 @@ int main (int argc, char *argv[])
 	  break;
 
 	case 'd':
-	  d_can_id = strtoul(optarg, (char **)NULL, 16);;
+	  d_can_id = strtoul(optarg, (char **)NULL, 16);
+	  break;
 
+	case 'I':
+	  incrementationId = 1; 
 	  break;
 
 	case 'v':
@@ -159,9 +165,7 @@ int main (int argc, char *argv[])
 
 	      if (debug)
 	      {
-	      printf (" Frame : (%ld.%d) %s %x [%x]",
-		      st_CAN_frame.sec_tps, st_CAN_frame.usec_tps,
-		      st_CAN_frame.interface_name, st_CAN_frame.Id, st_CAN_frame.length_data);
+	      	check_debug (&st_CAN_frame, &st_ISOTP_frame, timestamp);
 	      }
 	    }
 
@@ -177,7 +181,7 @@ int main (int argc, char *argv[])
 	      fscanf (fichier, " %s  %x  [%hhx]", st_CAN_frame.interface_name, &st_CAN_frame.Id, &st_CAN_frame.length_data);	// read and allocate in a variable
 
 	      if (debug)
-	      	printf (" Frame : %s %x [%x]",st_CAN_frame.interface_name, st_CAN_frame.Id, st_CAN_frame.length_data);
+	      	check_debug (&st_CAN_frame, &st_ISOTP_frame, timestamp);
 
 	      if (st_CAN_frame.length_data > 8)	// size condition
 		  {
@@ -207,12 +211,14 @@ int main (int argc, char *argv[])
 			else
 			printf ("Not ISOTP frame \n");
 
-		  if (control_ID == 1)
-			Isotp_flag = IsotpMode(&st_CAN_frame, &st_ISOTP_frame, &flag);
-		
-		  if((flag) && (debug))
+		  if (control_ID == 1){
+		  	Isotp_flag = IsotpMode(&st_CAN_frame, &st_ISOTP_frame, &flag_Display);
+		  	display_Data ++;
+		  }
+			
+		  if((flag_Display) && (debug))
 		  {
-				for(iterator = 0; iterator < 15; iterator ++)
+				for(iterator = 0; iterator < display_Data; iterator ++)
 				{
 				printf ("%02x ", st_ISOTP_frame.extracting_data[iterator]);
 				}
@@ -246,8 +252,17 @@ int main (int argc, char *argv[])
 	    st_CAN_frame.data[0] + (st_CAN_frame.data[1] << 8) + (st_CAN_frame.data[2] << 16) +
 	    (st_CAN_frame.data[3] << 24) + ((uint64_t)st_CAN_frame.data[4] << 32) + ((uint64_t)st_CAN_frame.data[5] << 40) + ((uint64_t)st_CAN_frame.data[6] << 48) + ((uint64_t)st_CAN_frame.data[7] << 56);
 	 		
-	 	canComp (counter, CAN_data_counter, file);
-	 	CAN_data_counter++;
+	 	if (incrementationId == 1)
+	 	{
+	 		//iteratorId = st_CAN_frame.Id; 
+	 		canComp (counter, CAN_data_counter, file,st_CAN_frame.Id, check_data_counter);
+	 		CAN_data_counter++;
+	 		check_data_counter ++; 
+	 	}
+	 	
+	 	else
+	 		/*canComp (counter, CAN_data_counter, file);*/
+	 		CAN_data_counter++;
 	 	}
 
 	 	

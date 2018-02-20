@@ -9,12 +9,12 @@
 
 
 int
-canComp (  uint64_t counter, unsigned long val, char *file)
+canComp (  uint64_t counter, unsigned long val, char *file, int id, int incId)
 {
   int result = 0;
   int compt = 0;
 
-  if (val == counter)
+  if ((val == counter) || (id == incId))
     {
      result = CAN_CHECK_OK;
     }
